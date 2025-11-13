@@ -1,0 +1,168 @@
+# apps/accounts/serializers.py
+
+from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+
+from .models import CustomUser, UserProfile, UserAddress, UserActivity
+
+# -----------------------------
+# User Registration
+# -----------------------------
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        label='آدرس ایمیل',
+        help_text='لطفا یک ایمیل معتبر وارد کنید'
+    )
+    full_name = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        label='نام و نام خانوادگی',
+        help_text='لطفا نام و نام خانوادگی خود را وارد کنید',
+        error_messages={
+            'blank': 'لطفا نام و نام خانوادگی را وارد کنید',
+            'required': 'وارد کردن نام و نام خانوادگی الزامی است'
+        }
+    )
+    phone = serializers.CharField(
+        required=True,
+        allow_blank=False,
+        label='شماره تلفن همراه',
+        help_text='مثال: 09123456789',
+        max_length=20,
+        error_messages={
+            'blank': 'لطفا شماره تلفن همراه را وارد کنید',
+            'required': 'وارد کردن شماره تلفن همراه الزامی است',
+            'max_length': 'شماره تلفن نباید بیشتر از ۲۰ کاراکتر باشد'
+        }
+    )
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+        label='رمز عبور',
+        help_text='رمز عبور باید حداقل ۸ کاراکتر و شامل حروف و اعداد باشد',
+        min_length=8,
+        error_messages={
+            'min_length': 'رمز عبور باید حداقل ۸ کاراکتر باشد',
+            'blank': 'لطفا رمز عبور را وارد کنید',
+            'required': 'وارد کردن رمز عبور الزامی است'
+        }
+    )
+    password_confirm = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'},
+        label='تکرار رمز عبور',
+        help_text='لطفا رمز عبور را مجددا وارد کنید'
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'full_name', 'phone', 'password', 'password_confirm']
+        extra_kwargs = {
+            'email': {
+                'error_messages': {
+                    'invalid': 'لطفا یک ایمیل معتبر وارد کنید',
+                    'required': 'وارد کردن ایمیل الزامی است',
+                    'blank': 'لطفا ایمیل را وارد کنید'
+                }
+            }
+        }
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({'password_confirm': 'رمزهای عبور یکسان نیستند.'})
+        try:
+            validate_password(attrs['password'])
+        except ValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop('password_confirm')
+        password = validated_data.pop('password')
+        user = CustomUser.objects.create_user(password=password, **validated_data)
+        UserProfile.objects.get_or_create(user=user)
+        return user
+
+# -----------------------------
+# User Login
+# -----------------------------
+class UserLoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(style={'input_type': 'password'}, trim_whitespace=False)
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if not email or not password:
+            raise serializers.ValidationError('لطفا ایمیل و رمز عبور را وارد کنید.', code='authorization')
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError('ایمیل یا رمز عبور اشتباه است.', code='authorization')
+
+        if not user.check_password(password):
+            raise serializers.ValidationError('ایمیل یا رمز عبور اشتباه است.', code='authorization')
+
+        if not user.is_active:
+            raise serializers.ValidationError('حساب کاربری غیرفعال است.', code='authorization')
+
+        UserProfile.objects.get_or_create(user=user)
+        attrs['user'] = user
+        return attrs
+
+# -----------------------------
+# User Profile
+# -----------------------------
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'user', 'bio', 'avatar', 'address']
+        read_only_fields = ['user']
+
+# -----------------------------
+# Change Password
+# -----------------------------
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    new_password_confirm = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError({'new_password_confirm': 'رمزهای عبور یکسان نیستند.'})
+        try:
+            validate_password(attrs['new_password'])
+        except ValidationError as e:
+            raise serializers.ValidationError({'new_password': list(e.messages)})
+        return attrs
+
+# -----------------------------
+# User Address
+# -----------------------------
+class UserAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAddress
+        fields = ['id', 'user', 'address_line', 'city', 'postal_code', 'country']
+        read_only_fields = ['user']
+
+# -----------------------------
+# User Activity
+# -----------------------------
+class UserActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserActivity
+        fields = ['id', 'user', 'action', 'timestamp']
+
+# -----------------------------
+# Admin User
+# -----------------------------
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email', 'full_name', 'phone', 'company', 'is_active', 'is_staff']

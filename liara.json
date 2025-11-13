@@ -1,0 +1,7 @@
+{
+  "project": "daidi-print",
+  "port": 3000,
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
+  "node": "18.x"
+}
