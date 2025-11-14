@@ -11,6 +11,8 @@ export interface User {
   is_active: boolean;
   date_joined: string;
   last_login?: string;
+  role: 'customer' | 'staff' | 'manager' | 'admin';
+  role_display: string;
 }
 
 export interface Service {
@@ -349,8 +351,8 @@ export function BackendProvider({ children }: { children: ReactNode }) {
     initializeData();
   }, []);
 
-  // Utility function to simulate API delay
-  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  // Utility function for potential API delay (currently disabled for faster UI)
+  const delay = async (_ms: number) => Promise.resolve();
 
   // Auth methods
   const login = async (username: string, password: string): Promise<ApiResponse<{user: User; token: string}>> => {
@@ -368,7 +370,9 @@ export function BackendProvider({ children }: { children: ReactNode }) {
         is_staff: true,
         is_active: true,
         date_joined: new Date().toISOString(),
-        last_login: new Date().toISOString()
+        last_login: new Date().toISOString(),
+        role: 'admin',
+        role_display: 'مدیر کل'
       };
       
       setUser(user);
@@ -397,15 +401,25 @@ export function BackendProvider({ children }: { children: ReactNode }) {
     setLoading(prev => ({ ...prev, auth: true }));
     await delay(1000);
     
+    const role = userData.role || 'staff';
+    const roleDisplayMap: Record<User['role'], string> = {
+      customer: 'مشتری',
+      staff: 'کارمند',
+      manager: 'مدیر',
+      admin: 'مدیر کل',
+    };
+
     const newUser: User = {
       id: Date.now(),
       username: userData.username || '',
       email: userData.email || '',
       first_name: userData.first_name || '',
       last_name: userData.last_name || '',
-      is_staff: false,
+      is_staff: role === 'staff' || role === 'manager' || role === 'admin',
       is_active: true,
-      date_joined: new Date().toISOString()
+      date_joined: new Date().toISOString(),
+      role,
+      role_display: roleDisplayMap[role],
     };
     
     setLoading(prev => ({ ...prev, auth: false }));

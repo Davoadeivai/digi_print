@@ -25,6 +25,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'required': 'وارد کردن نام و نام خانوادگی الزامی است'
         }
     )
+    role = serializers.ChoiceField(
+        choices=[
+            ('customer', 'مشتری'),
+            ('staff', 'کارمند'),
+            ('manager', 'مدیر'),
+            ('admin', 'ادمین'),
+        ],
+        required=True,
+        label='نقش کاربر',
+        help_text='نوع حساب کاربری را انتخاب کنید',
+    )
     phone = serializers.CharField(
         required=True,
         allow_blank=False,
@@ -60,7 +71,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'full_name', 'phone', 'password', 'password_confirm']
+        fields = ['email', 'full_name', 'phone', 'password', 'password_confirm', 'role']
         extra_kwargs = {
             'email': {
                 'error_messages': {

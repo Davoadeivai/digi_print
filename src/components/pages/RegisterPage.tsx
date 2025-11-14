@@ -7,7 +7,7 @@ import { Label } from '../ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { UserPlus, Mail, Lock, User, Phone, Building2, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const { navigate } = useNavigation();
@@ -24,9 +24,10 @@ export default function RegisterPage() {
     company: '',
     password: '',
     password_confirm: '',
+    role: 'customer' as 'customer' | 'staff' | 'manager' | 'admin',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     // پاک کردن خطا هنگام تایپ
@@ -200,6 +201,27 @@ export default function RegisterPage() {
                   <p className="text-sm text-red-500">{errors.phone}</p>
                 )}
               </div>
+            </div>
+
+            {/* نوع حساب کاربری */}
+            <div className="space-y-2">
+              <Label htmlFor="role" className="flex items-center gap-2">
+                نوع حساب کاربری
+                <span className="text-red-500">*</span>
+              </Label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              >
+                <option value="customer">مشتری</option>
+                <option value="staff">کارمند</option>
+                <option value="manager">مدیر</option>
+                <option value="admin">مدیر کل</option>
+              </select>
             </div>
 
             {/* نام شرکت */}

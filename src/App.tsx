@@ -8,9 +8,14 @@ import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
 import { BackendProvider } from './contexts/BackendContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { ServiceDetailPage } from './components/pages/ServiceDetailPage';
 import { PortfolioDetailPage } from './components/pages/PortfolioDetailPage';
 import { OrderPage } from './components/pages/OrderPage';
+import RegisterPage from './components/pages/RegisterPage';
+import LoginPage from './components/pages/LoginPage';
+import UserDashboard from './components/pages/UserDashboard';
+import PriceCalculatorPage from './components/pages/PriceCalculatorPage';
 
 function AppContent() {
   const { currentPage } = useNavigation();
@@ -33,6 +38,30 @@ function AppContent() {
   // Render based on current page
   const renderPage = () => {
     switch (currentPage) {
+      case 'register':
+        return (
+          <>
+            <Header />
+            <RegisterPage />
+            <Footer />
+          </>
+        );
+      case 'login':
+        return (
+          <>
+            <Header />
+            <LoginPage />
+            <Footer />
+          </>
+        );
+      case 'dashboard':
+        return (
+          <>
+            <Header />
+            <UserDashboard />
+            <Footer />
+          </>
+        );
       case 'service-detail':
         return (
           <>
@@ -54,6 +83,14 @@ function AppContent() {
           <>
             <Header />
             <OrderPage />
+            <Footer />
+          </>
+        );
+      case 'price-calculator':
+        return (
+          <>
+            <Header />
+            <PriceCalculatorPage />
             <Footer />
           </>
         );
@@ -83,10 +120,12 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BackendProvider>
-      <NavigationProvider>
-        <AppContent />
-      </NavigationProvider>
-    </BackendProvider>
+    <AuthProvider>
+      <BackendProvider>
+        <NavigationProvider>
+          <AppContent />
+        </NavigationProvider>
+      </BackendProvider>
+    </AuthProvider>
   );
 }

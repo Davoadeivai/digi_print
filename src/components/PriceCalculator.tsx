@@ -19,7 +19,7 @@ import {
   CheckCircle2,
   ArrowLeft
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 // تعریف اندازه‌های کاغذ (بر حسب سانتی‌متر)
 const PAPER_SIZES = {

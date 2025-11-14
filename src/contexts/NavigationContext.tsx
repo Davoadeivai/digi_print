@@ -1,28 +1,16 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type Page = 
-  | 'home'
-  | 'about'
-  | 'services'
-  | 'service-detail'
-  | 'portfolio'
-  | 'portfolio-detail'
-  | 'contact'
-  | 'order'
-  | 'pricing'
-  | 'blog'
-  | 'gallery';
+export type Page =
+  | 'home' | 'about' | 'services' | 'service-detail' | 'portfolio' | 'portfolio-detail'
+  | 'contact' | 'order' | 'pricing' | 'price-calculator' | 'blog' | 'gallery'
+  | 'register' | 'login' | 'dashboard' | 'profile' | 'my-orders';
 
 export interface ServiceDetail {
   id: string;
   title: string;
   description: string;
   features: string[];
-  pricing: {
-    basic: number;
-    premium: number;
-    enterprise: number;
-  };
+  pricing: { basic: number; premium: number; enterprise: number };
   gallery: string[];
   specifications: string[];
 }
@@ -60,8 +48,6 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     setHistory(prev => [...prev, { page, data }]);
     setCurrentPage(page);
     setPageData(data);
-    
-    // Scroll to top when navigating
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -69,23 +55,15 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     if (history.length > 1) {
       const newHistory = history.slice(0, -1);
       const previousPage = newHistory[newHistory.length - 1];
-      
       setHistory(newHistory);
       setCurrentPage(previousPage.page);
       setPageData(previousPage.data);
-      
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <NavigationContext.Provider value={{
-      currentPage,
-      navigate,
-      pageData,
-      goBack,
-      history
-    }}>
+    <NavigationContext.Provider value={{ currentPage, navigate, pageData, goBack, history }}>
       {children}
     </NavigationContext.Provider>
   );
@@ -93,8 +71,6 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 
 export function useNavigation() {
   const context = useContext(NavigationContext);
-  if (!context) {
-    throw new Error('useNavigation must be used within NavigationProvider');
-  }
+  if (!context) throw new Error('useNavigation must be used within NavigationProvider');
   return context;
 }

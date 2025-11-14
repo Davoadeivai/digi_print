@@ -14,7 +14,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(_('شماره تلفن'), max_length=20, blank=True)
     role = models.CharField(
         _('نقش'), max_length=20,
-        choices=[('customer', 'مشتری'), ('staff', 'کارمند'), ('admin', 'ادمین')],
+        choices=[
+            ('customer', 'مشتری'),
+            ('staff', 'کارمند'),
+            ('manager', 'مدیر'),
+            ('admin', 'ادمین'),
+        ],
         default='customer'
     )
     is_staff = models.BooleanField(_('کارمند سایت'), default=False)

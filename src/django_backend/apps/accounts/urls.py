@@ -11,6 +11,7 @@ from .views import (
     UserAddressListCreateView,
     UserAddressDetailView,
     UserActivityListView,
+    UserActivityExportView,
     UserDashboardView,
     AdminUserListView,
 )
@@ -35,6 +36,7 @@ urlpatterns = [
 
     # Activities
     path('activities/', UserActivityListView.as_view(), name='activities'),
+    path('activities/export/', UserActivityExportView.as_view(), name='activities_export'),
 
     # Admin
     path('users/', AdminUserListView.as_view(), name='user_list'),

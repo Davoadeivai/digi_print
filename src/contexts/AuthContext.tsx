@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import axios from 'axios';
 import { API_URL } from '../config/env';
 
@@ -17,7 +17,8 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = config.headers || {};
+      (config.headers as any).Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -35,14 +36,15 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        const response = await axios.post(`${API_BASE_URL}/accounts/token/refresh/`, {
+        const response = await axios.post<TokenResponse>(`${API_BASE_URL}/accounts/token/refresh/`, {
           refresh: refreshToken,
         });
 
         const { access } = response.data;
         localStorage.setItem('access_token', access);
 
-        originalRequest.headers.Authorization = `Bearer ${access}`;
+        originalRequest.headers = originalRequest.headers || {};
+        (originalRequest.headers as any).Authorization = `Bearer ${access}`;
         return api(originalRequest);
       } catch (refreshError) {
         localStorage.removeItem('access_token');
@@ -63,7 +65,7 @@ interface User {
   full_name: string;
   phone?: string;
   company?: string;
-  role: 'customer' | 'staff' | 'admin';
+  role: 'customer' | 'staff' | 'manager' | 'admin';
   role_display: string;
   avatar?: string;
   email_verified: boolean;
@@ -79,6 +81,12 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isStaff: boolean;
+   isManager: boolean;
+}
+
+interface TokenResponse {
+  access: string;
+  refresh?: string;
 }
 
 interface RegisterData {
@@ -88,11 +96,12 @@ interface RegisterData {
   company?: string;
   password: string;
   password_confirm: string;
+   role: User['role'];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -105,9 +114,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (token && savedUser) {
         try {
           setUser(JSON.parse(savedUser));
-          // در حالت شبیه‌سازی، از سرور اطلاعات نمی‌گیریم
+          console.log('✅ کاربر از localStorage بارگذاری شد');
         } catch (error) {
-          console.error('خطا در بارگذاری کاربر:', error);
+          console.error('❌ خطا در بارگذاری کاربر:', error);
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('user');
@@ -121,6 +130,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (data: RegisterData) => {
     try {
+      console.log('🔵 ثبت‌نام شروع شد با داده:', data);
+      
+      const roleDisplayMap: Record<User['role'], string> = {
+        customer: 'مشتری',
+        staff: 'کارمند',
+        manager: 'مدیر',
+        admin: 'مدیر کل',
+      };
+
       // شبیه‌سازی ثبت‌نام موفق
       const newUser: User = {
         id: Math.floor(Math.random() * 1000),
@@ -128,8 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         full_name: data.full_name,
         phone: data.phone,
         company: data.company,
-        role: 'customer',
-        role_display: 'مشتری',
+        role: data.role,
+        role_display: roleDisplayMap[data.role] || 'مشتری',
         email_verified: false,
       };
 
@@ -143,13 +161,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(newUser));
 
       setUser(newUser);
+      console.log('✅ ثبت‌نام موفق:', newUser);
     } catch (error: any) {
+      console.error('❌ خطا در ثبت‌نام:', error);
       throw error.response?.data || { message: 'خطا در ثبت‌نام' };
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('🔵 ورود شروع شد با ایمیل:', email);
+      
       // شبیه‌سازی ورود موفق
       // اعتبارسنجی ساده
       if (!email || !password) {
@@ -177,28 +199,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('user', JSON.stringify(loggedUser));
 
       setUser(loggedUser);
+      console.log('✅ ورود موفق:', loggedUser);
     } catch (error: any) {
-      throw error.response?.data || { message: 'خطا در ورود' };
+      console.error('❌ خطا در ورود:', error);
+      throw error.response?.data || error;
     }
   };
 
   const logout = async () => {
-    // شبیه‌سازی خروج
+    console.log('🔵 خروج از سیستم');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     setUser(null);
+    console.log('✅ خروج موفق');
   };
 
   const updateProfile = async (data: Partial<User>) => {
     try {
-      // شبیه‌سازی بروزرسانی پروفایل
+      console.log('🔵 بروزرسانی پروفایل:', data);
+      
       if (!user) throw { message: 'کاربر وارد نشده است' };
 
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      console.log('✅ پروفایل بروزرسانی شد:', updatedUser);
     } catch (error: any) {
+      console.error('❌ خطا در بروزرسانی پروفایل:', error);
       throw error.response?.data || { message: 'خطا در بروزرسانی پروفایل' };
     }
   };
@@ -212,18 +241,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateProfile,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin' || false,
-    isStaff: user?.role === 'staff' || user?.role === 'admin' || false,
+    isStaff: user?.role === 'staff' || user?.role === 'manager' || user?.role === 'admin' || false,
+    isManager: user?.role === 'manager' || false,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}
 
 export { api };

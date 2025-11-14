@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { Menu, Phone, Mail, Clock, ArrowLeft, Sparkles, Shield } from 'lucide-react';
 import { useNavigation } from '../contexts/NavigationContext';
 import { useBackend } from '../contexts/BackendContext';
+import { useAuth } from '../contexts/AuthContext';
 import { AdminLogin } from './admin/AdminLogin';
 import { AdminPanel } from './admin/AdminPanel';
 
@@ -15,6 +16,7 @@ export function Header() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { navigate, currentPage } = useNavigation();
   const { isAuthenticated, user, logout } = useBackend();
+  const { user: appUser, logout: appLogout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -116,8 +118,56 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* User auth controls (customer login/register or dashboard/logout) */}
+            {appUser ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {appUser.full_name}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('dashboard')}
+                  className="flex items-center gap-2"
+                >
+                  حساب کاربری
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    await appLogout();
+                    navigate('home');
+                  }}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-primary"
+                >
+                  خروج
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('login')}
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  ورود
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('register')}
+                  className="border-primary text-primary"
+                >
+                  ثبت نام
+                </Button>
+              </div>
+            )}
+
+            {/* Admin controls using BackendContext */}
             {isAuthenticated ? (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
@@ -136,13 +186,13 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAdminLogin(true)}
-                className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-primary"
+                className="flex items-center gap-2 text-muted-foreground hover:text-primary"
               >
                 <Shield className="w-4 h-4" />
                 ورود مدیر
               </Button>
             )}
-            
+
             <Button 
               className="hidden md:flex hover-scale glow group bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
               onClick={() => navigate('order')}

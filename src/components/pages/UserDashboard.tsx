@@ -21,7 +21,7 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 interface DashboardData {
   user: any;
@@ -76,9 +76,6 @@ export default function UserDashboard() {
   const loadDashboardData = async () => {
     try {
       // استفاده از داده‌های Mock به جای API
-      // شبیه‌سازی تأخیر شبکه
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       const mockData: DashboardData = {
         user: user,
         stats: {

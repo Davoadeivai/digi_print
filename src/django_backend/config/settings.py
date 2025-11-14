@@ -129,24 +129,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/stable/ref/settings/#databases
 
-if TESTING:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
-        }
+# Using SQLite for local development
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': get_env_variable('DB_ENGINE', 'django.db.backends.postgresql'),
-            'NAME': get_env_variable('DB_NAME', 'daidi_db'),
-            'USER': get_env_variable('DB_USER', 'postgres'),
-            'PASSWORD': get_env_variable('DB_PASSWORD', 'postgres'),
-            'HOST': get_env_variable('DB_HOST', 'localhost'),
-            'PORT': get_env_variable('DB_PORT', '5432'),
-        }
-    }
+}
 
 # Use dj-database-url if DATABASE_URL is set
 if os.environ.get('DATABASE_URL'):
@@ -281,15 +270,29 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
+# ============================
+# CORS Settings
+# ============================
 
-# CORS settings
+from corsheaders.defaults import default_headers
+
 CORS_ALLOW_ALL_ORIGINS = DEBUG
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
-if not CORS_ALLOWED_ORIGINS or CORS_ALLOWED_ORIGINS == ['']:
+
+cors_raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
+
+if cors_raw:
     CORS_ALLOWED_ORIGINS = [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
+        origin.strip()
+        for origin in cors_raw.split(",")
+        if origin.strip()
     ]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+
+
 
 # Trusted origins for CSRF
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS + [

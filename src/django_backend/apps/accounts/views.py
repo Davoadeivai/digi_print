@@ -1,5 +1,10 @@
 # apps/accounts/views.py
 
+import csv
+
+from django.http import HttpResponse
+from django.utils import timezone
+
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -186,6 +191,34 @@ class UserActivityListView(generics.ListAPIView):
 
     def get_queryset(self):
         return UserActivity.objects.filter(user=self.request.user)
+
+
+class UserActivityExportView(APIView):
+    """خروجی گرفتن از تمام فعالیت‌های کاربران به صورت CSV (فقط برای ادمین)."""
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        queryset = UserActivity.objects.select_related('user').order_by('-created_at')
+
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'user_activities_{timestamp}.csv'
+
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow(['user_email', 'activity_type', 'description', 'ip_address', 'user_agent', 'created_at'])
+        for activity in queryset:
+            writer.writerow([
+                activity.user.email,
+                activity.activity_type,
+                activity.description,
+                activity.ip_address,
+                activity.user_agent,
+                timezone.localtime(activity.created_at).strftime('%Y-%m-%d %H:%M:%S'),
+            ])
+
+        return response
 
 # -----------------------------
 # User Dashboard (مثال)
