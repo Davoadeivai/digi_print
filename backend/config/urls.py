@@ -9,6 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import permissions
 from django.views.generic import TemplateView
+from apps.core.views import health_check
 
 # تنظیمات پنل ادمین
 admin.site.site_header = "دیجی چاپ و گرافیک - پنل مدیریت"
@@ -16,6 +17,9 @@ admin.site.site_title = "دیجی چاپ و گرافیک"
 admin.site.index_title = "خوش آمدید به پنل مدیریت"
 
 urlpatterns = [
+    # Health check for monitoring (Render, etc.)
+    path('api/health/', health_check, name='health_check'),
+    
     # Admin
     path('admin/', admin.site.urls),
     

@@ -1,0 +1,65 @@
+services:
+  # Django Backend Service
+  - type: web
+    name: digi-print-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheck:
+      path: /api/health/
+      initialDelaySeconds: 30
+      timeoutSeconds: 10
+      periodSeconds: 15
+      failureThreshold: 3
+    envVars:
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: digi-print-db
+          property: connectionString
+      - key: SECURE_SSL_REDIRECT
+        value: true
+      - key: SESSION_COOKIE_SECURE
+        value: true
+      - key: CSRF_COOKIE_SECURE
+        value: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://digi-print-frontend.onrender.com
+      - key: FRONTEND_URL
+        value: https://digi-print-frontend.onrender.com
+      - key: JWT_ACCESS_TOKEN_LIFETIME_MINUTES
+        value: 1440
+      - key: JWT_REFRESH_TOKEN_LIFETIME_DAYS
+        value: 7
+      - key: STATIC_URL
+        value: /static/
+      - key: MEDIA_URL
+        value: /media/
+
+  # PostgreSQL Database
+  - type: pserv
+    name: digi-print-db
+    env: docker
+    dockerfilePath: ./Dockerfile.postgres
+    envVars:
+      - key: POSTGRES_DB
+        value: digi_print
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # Static File Service
+  - type: web
+    name: digi-print-static
+    env: static
+    buildCommand: "cd backend && python manage.py collectstatic --noinput"
+    staticPublishPath: ./backend/staticfiles
+    envVars:
+      - key: DEBUG
+        value: false
