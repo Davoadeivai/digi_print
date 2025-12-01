@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     # Local
     'apps.accounts',
     'apps.core',
+    'apps.products',
 ]
 
 MIDDLEWARE = [
@@ -205,7 +206,12 @@ cors_raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
 if cors_raw:
     CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_raw.split(",") if origin.strip()]
 else:
-    CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']

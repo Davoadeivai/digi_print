@@ -170,17 +170,26 @@ class UserAddressListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserAddress.objects.filter(user=self.request.user)
+        try:
+            user_profile = UserProfile.objects.get(user=self.request.user)
+            return UserAddress.objects.filter(user_profile=user_profile)
+        except UserProfile.DoesNotExist:
+            return UserAddress.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        user_profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        serializer.save(user_profile=user_profile)
 
 class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserAddressSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return UserAddress.objects.filter(user=self.request.user)
+        try:
+            user_profile = UserProfile.objects.get(user=self.request.user)
+            return UserAddress.objects.filter(user_profile=user_profile)
+        except UserProfile.DoesNotExist:
+            return UserAddress.objects.none()
 
 # -----------------------------
 # User Activities

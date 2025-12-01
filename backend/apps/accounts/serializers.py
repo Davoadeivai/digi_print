@@ -25,17 +25,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'required': 'وارد کردن نام و نام خانوادگی الزامی است'
         }
     )
-    role = serializers.ChoiceField(
-        choices=[
-            ('customer', 'مشتری'),
-            ('staff', 'کارمند'),
-            ('manager', 'مدیر'),
-            ('admin', 'ادمین'),
-        ],
-        required=True,
-        label='نقش کاربر',
-        help_text='نوع حساب کاربری را انتخاب کنید',
-    )
     phone = serializers.CharField(
         required=True,
         allow_blank=False,
@@ -71,7 +60,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'full_name', 'phone', 'password', 'password_confirm', 'role']
+        fields = ['email', 'full_name', 'phone', 'password', 'password_confirm']
         extra_kwargs = {
             'email': {
                 'error_messages': {
@@ -94,6 +83,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password_confirm')
         password = validated_data.pop('password')
+        # Set default role to customer for security
+        validated_data['role'] = 'customer'
         user = CustomUser.objects.create_user(password=password, **validated_data)
         UserProfile.objects.get_or_create(user=user)
         return user
@@ -131,10 +122,16 @@ class UserLoginSerializer(serializers.Serializer):
 # User Profile
 # -----------------------------
 class UserProfileSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+    
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'bio', 'avatar', 'address']
-        read_only_fields = ['user']
+        fields = [
+            'id', 'user', 'bio', 'avatar', 'job_title', 'department', 'linkedin', 'instagram', 
+            'telegram', 'discount_percentage', 'total_orders', 'total_spent', 
+            'notes', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'total_orders', 'total_spent']
 
 # -----------------------------
 # Change Password
@@ -157,18 +154,26 @@ class ChangePasswordSerializer(serializers.Serializer):
 # User Address
 # -----------------------------
 class UserAddressSerializer(serializers.ModelSerializer):
+    user_profile = serializers.StringRelatedField(read_only=True)
+    
     class Meta:
         model = UserAddress
-        fields = ['id', 'user', 'address_line', 'city', 'postal_code', 'country']
-        read_only_fields = ['user']
+        fields = [
+            'id', 'user_profile', 'title', 'full_name', 'phone', 'province', 
+            'city', 'address', 'postal_code', 'is_default', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user_profile', 'created_at', 'updated_at']
 
 # -----------------------------
 # User Activity
 # -----------------------------
 class UserActivitySerializer(serializers.ModelSerializer):
+    activity_type_display = serializers.CharField(source='get_activity_type_display', read_only=True)
+    
     class Meta:
         model = UserActivity
-        fields = ['id', 'user', 'action', 'timestamp']
+        fields = ['id', 'activity_type', 'activity_type_display', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 # -----------------------------
 # Admin User
@@ -177,3 +182,74 @@ class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'full_name', 'phone', 'company', 'is_active', 'is_staff']
+
+
+# =============================
+# NXTBN-STYLE SERIALIZERS
+# =============================
+
+class UserSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر اصلی کاربر با آمار (nxtbn-style)
+    """
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    total_orders = serializers.IntegerField(source='total_order_count', read_only=True)
+    pending_orders = serializers.IntegerField(source='total_pending_order_count', read_only=True)
+    cancelled_orders = serializers.IntegerField(source='total_cancelled_order_count', read_only=True)
+    completed_orders = serializers.IntegerField(source='total_completed_order_count', read_only=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'full_name',
+            'phone', 'role', 'role_display', 'avatar',
+            'is_store_admin', 'is_store_staff', 'is_staff', 'is_active',
+            'email_verified', 'date_joined', 'updated_at',
+            'total_orders', 'pending_orders', 'cancelled_orders', 'completed_orders'
+        ]
+        read_only_fields = [
+            'id', 'date_joined', 'updated_at', 'email_verified',
+            'total_orders', 'pending_orders', 'cancelled_orders', 'completed_orders'
+        ]
+
+
+class UserStatsSerializer(serializers.Serializer):
+    """
+    سریالایزر برای آمار کاربر (nxtbn-style)
+    """
+    total_orders = serializers.IntegerField()
+    pending_orders = serializers.IntegerField()
+    cancelled_orders = serializers.IntegerField()
+    completed_orders = serializers.IntegerField()
+    total_spent = serializers.IntegerField()
+    discount_percentage = serializers.IntegerField()
+    addresses_count = serializers.IntegerField()
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر برای ویرایش پروفایل کاربر (nxtbn-style)
+    """
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'phone', 'avatar']
+
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر برای مدیریت کاربران توسط ادمین (nxtbn-style)
+    """
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    total_orders = serializers.IntegerField(source='total_order_count', read_only=True)
+    
+    class Meta:
+        model = CustomUser
+        fields = [
+            'id', 'email', 'first_name', 'last_name', 'full_name',
+            'phone', 'role', 'role_display', 'avatar',
+            'is_store_admin', 'is_store_staff', 'is_staff', 'is_active',
+            'is_superuser', 'email_verified', 'date_joined', 'total_orders'
+        ]
+        read_only_fields = ['id', 'date_joined', 'total_orders']

@@ -1,30 +1,43 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from .managers import CustomUserManager
+from .enums import UserRole, PermissionsEnum
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     """
     مدل کاربر سفارشی با ایمیل به‌جای username
+    مبتنی بر nxtbn با قابلیت‌های پیشرفته
     """
     email = models.EmailField(_('ایمیل'), unique=True)
     first_name = models.CharField(_('نام'), max_length=150, blank=True)
     last_name = models.CharField(_('نام خانوادگی'), max_length=150, blank=True)
     phone = models.CharField(_('شماره تلفن'), max_length=20, blank=True)
+    company = models.CharField(_('شرکت'), max_length=200, blank=True)
+    
+    # نقش کاربر - استفاده از enum
     role = models.CharField(
-        _('نقش'), max_length=20,
-        choices=[
-            ('customer', 'مشتری'),
-            ('staff', 'کارمند'),
-            ('manager', 'مدیر'),
-            ('admin', 'ادمین'),
-        ],
-        default='customer'
+        _('نقش'), 
+        max_length=50,
+        choices=UserRole.choices,
+        default=UserRole.CUSTOMER
     )
+    
+    # فیلدهای دسترسی (از nxtbn)
+    is_store_admin = models.BooleanField(_('مدیر فروشگاه'), default=False)
+    is_store_staff = models.BooleanField(_('کارمند فروشگاه'), default=False)
+    
+    # فیلدهای استاندارد Django
     is_staff = models.BooleanField(_('کارمند سایت'), default=False)
     is_active = models.BooleanField(_('فعال'), default=True)
     email_verified = models.BooleanField(_('ایمیل تایید شده'), default=False)
+    
+    # آواتار (از nxtbn)
+    avatar = models.ImageField(_('آواتار'), upload_to='avatars/', null=True, blank=True)
+    
+    # تاریخ‌ها
     date_joined = models.DateTimeField(_('تاریخ عضویت'), auto_now_add=True)
     updated_at = models.DateTimeField(_('به‌روزرسانی'), auto_now=True)
 
@@ -36,22 +49,76 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _('کاربر')
         verbose_name_plural = _('کاربران')
+        permissions = [
+            (PermissionsEnum.CAN_READ_CUSTOMER.value, 'می‌تواند مشتریان را مشاهده کند'),
+            (PermissionsEnum.CAN_UPDATE_CUSTOMER.value, 'می‌تواند مشتریان را ویرایش کند'),
+            (PermissionsEnum.CAN_DELETE_CUSTOMER.value, 'می‌تواند مشتریان را حذف کند'),
+        ]
 
     def __str__(self):
-        return self.email
+        parts = [self.get_full_name(), self.email]
+        return " - ".join(part for part in parts if part)
 
+    def get_full_name(self):
+        """بازگرداندن نام کامل کاربر"""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.email
+    
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}".strip() or self.email
+        return self.get_full_name()
         
     @full_name.setter
     def full_name(self, value):
         names = value.split(' ', 1)
         self.first_name = names[0]
         self.last_name = names[1] if len(names) > 1 else ''
+    
+    @property
+    def role_display(self):
+        """نمایش فارسی نقش کاربر"""
+        return self.get_role_display()
+    
+    def total_order_count(self):
+        """تعداد کل سفارشات کاربر"""
+        if hasattr(self, 'orders'):
+            return self.orders.count()
+        return 0
+    
+    def total_pending_order_count(self):
+        """تعداد سفارشات در انتظار"""
+        if hasattr(self, 'orders'):
+            return self.orders.filter(status='pending').count()
+        return 0
+    
+    def total_cancelled_order_count(self):
+        """تعداد سفارشات لغو شده"""
+        if hasattr(self, 'orders'):
+            return self.orders.filter(status='cancelled').count()
+        return 0
+    
+    def total_completed_order_count(self):
+        """تعداد سفارشات تکمیل شده"""
+        if hasattr(self, 'orders'):
+            return self.orders.filter(status='completed').count()
+        return 0
+    
+    def has_role(self, role):
+        """بررسی نقش کاربر"""
+        return self.role == role
+    
+    def has_permission_for_role(self, permission):
+        """بررسی دسترسی بر اساس نقش"""
+        from .enums import ROLE_PERMISSIONS
+        if self.is_superuser:
+            return True
+        return permission in ROLE_PERMISSIONS.get(self.role, [])
 
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
+    bio = models.TextField(_('بیوگرافی'), blank=True)
+    avatar = models.ImageField(_('آواتار'), upload_to='avatars/', null=True, blank=True)
     job_title = models.CharField(_('سمت شغلی'), max_length=150, blank=True)
     department = models.CharField(_('دپارتمان'), max_length=150, blank=True)
     linkedin = models.URLField(_('لینکدین'), blank=True)

@@ -13,8 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     curl \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy Python dependencies
