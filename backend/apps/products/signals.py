@@ -6,7 +6,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Order, UploadedFile
+from .models import UploadedFile
+from apps.orders.models import Order
 
 
 @receiver(post_save, sender=Order)
