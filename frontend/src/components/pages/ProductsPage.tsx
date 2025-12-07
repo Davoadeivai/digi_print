@@ -268,7 +268,7 @@ export default function ProductsPage() {
               <p className="text-gray-600">با تغییر فیلترها یا جستجوی خود دوباره تلاش کنید</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
               {filteredAndSortedProducts.map((product) => {
                 const stockPercentage = getStockPercentage(product.id);
                 const isLowStock = stockPercentage < 30;
