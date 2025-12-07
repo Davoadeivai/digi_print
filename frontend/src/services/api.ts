@@ -122,10 +122,12 @@ class ApiClient {
   }
 }
 
+import { API_URL } from '../config/env';
+
 // API Client Instance
 // API Client Instance
 const apiClient = new ApiClient({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -353,9 +355,22 @@ export class OrderSerializer {
 export class AuthService {
   static async login(credentials: { username: string; password: string }) {
     try {
-      const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-      if (response.token) {
-        apiClient.setAuthToken(response.token);
+      // Define the expected response type
+      interface LoginResponse {
+        access: string;
+        refresh: string;
+        user: any;
+      }
+      
+      const response = await apiClient.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, {
+        email: credentials.username, // mapping username to email as API expects email
+        password: credentials.password
+      });
+      
+      if (response.access) {
+        apiClient.setAuthToken(response.access);
+        // Store refresh token as well if needed, though apiClient only handles one token currently
+        localStorage.setItem('refresh_token', response.refresh);
       }
       return response;
     } catch (error) {

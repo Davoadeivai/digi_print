@@ -1,6 +1,4 @@
-import { Card } from './ui/card';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { Separator } from './ui/separator';
 import {
@@ -10,86 +8,128 @@ import {
   Instagram,
   Linkedin,
   Twitter,
+  Facebook,
   Send,
   ArrowUp,
   Heart,
-  Star,
-  Award,
-  Users,
-  CheckCircle
+  CreditCard,
+  ShieldCheck,
+  Globe,
+  Clock
 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function Footer() {
+  const [email, setEmail] = useState('');
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    toast.success('با تشکر! شما در خبرنامه عضو شدید.');
+    setEmail('');
+  };
+
   const quickLinks = [
-    { label: 'خانه', href: '#home' },
-    { label: 'درباره ما', href: '#about' },
-    { label: 'خدمات', href: '#services' },
-    { label: 'نمونه کارها', href: '#portfolio' },
-    { label: 'تماس با ما', href: '#contact' }
+    { label: 'صفحه اصلی', href: '/' },
+    { label: 'محصولات ما', href: '/products' },
+    { label: 'درباره ما', href: '/about' },
+    { label: 'تماس با ما', href: '/contact' },
+    { label: 'قوانین و مقررات', href: '/terms' },
   ];
 
   const services = [
-    { label: 'چاپ دیجیتال', href: '#' },
-    { label: 'طراحی گرافیک', href: '#' },
-    { label: 'بسته‌بندی', href: '#' },
-    { label: 'تبلیغات', href: '#' },
-    { label: 'عکاسی محصول', href: '#' },
-    { label: 'طراحی دیجیتال', href: '#' }
+    { label: 'چاپ دیجیتال فوری', href: '/products?type=digital' },
+    { label: 'چاپ افست تیراژ بالا', href: '/products?type=offset' },
+    { label: 'طراحی بسته بندی', href: '/services/packaging' },
+    { label: 'چاپ لیبل و استیکر', href: '/category/label' },
+    { label: 'کارت ویزیت لوکس', href: '/category/card' },
   ];
 
   const socialLinks = [
-    {
-      icon: Instagram,
-      label: 'اینستاگرام',
-      href: '#',
-      color: 'from-pink-500 to-purple-600',
-      followers: '۲۵K'
-    },
-    {
-      icon: Linkedin,
-      label: 'لینکدین',
-      href: '#',
-      color: 'from-blue-600 to-blue-700',
-      followers: '۵K'
-    },
-    {
-      icon: Twitter,
-      label: 'توییتر',
-      href: '#',
-      color: 'from-sky-400 to-blue-500',
-      followers: '۸K'
-    }
-  ];
-
-  const stats = [
-    { icon: Users, number: '۲۵۰۰+', label: 'مشتری راضی' },
-    { icon: CheckCircle, number: '۱۵۰۰+', label: 'پروژه تکمیل شده' },
-    { icon: Award, number: '۱۵+', label: 'جایزه طراحی' },
-    { icon: Star, number: '۴.۹', label: 'امتیاز مشتریان' }
+    { icon: Instagram, href: '#', label: 'Instagram', color: 'hover:text-pink-500' },
+    { icon: Linkedin, href: '#', label: 'LinkedIn', color: 'hover:text-blue-600' },
+    { icon: Twitter, href: '#', label: 'Twitter', color: 'hover:text-sky-400' },
+    { icon: Facebook, href: '#', label: 'Facebook', color: 'hover:text-blue-700' },
   ];
 
   return (
-    <footer className="bg-slate-950 text-white pt-16 pb-8 relative overflow-hidden">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-          {/* Brand & Social */}
+    <footer className="relative bg-[#0f1016] text-white pt-20 overflow-hidden font-sans border-t border-white/5">
+      {/* Background Effects */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[128px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/10 rounded-full blur-[128px] pointer-events-none" />
+
+      <div className="container mx-auto px-4 relative z-10">
+
+        {/* Newsletter Section - Premium Glass Card */}
+        <div className="max-w-4xl mx-auto mb-20">
+          <div className="bg-gradient-to-r from-white/5 to-white/[0.02] backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden group">
+            {/* Animated Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-transparent to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 transform rotate-3 group-hover:rotate-6 transition-transform duration-300 shadow-xl shadow-purple-900/20">
+                <Mail className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                عضویت در خبرنامه ویژه
+              </h2>
+              <p className="text-gray-400 mb-8 max-w-lg mx-auto text-sm md:text-base">
+                با عضویت در خبرنامه، از آخرین تخفیف‌ها، مقالات آموزشی و محصولات جدید زودتر از دیگران مطلع شوید.
+              </p>
+
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+                <div className="relative flex-grow">
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="ایمیل خود را وارد کنید..."
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pr-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 focus:border-purple-500 h-12 rounded-xl transition-all"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="h-12 px-8 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-lg hover:shadow-purple-500/25 transition-all text-base"
+                >
+                  عضویت
+                  <Send className="w-4 h-4 mr-2 rotate-180" />
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Footer Links */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+
+          {/* Column 1: Brand */}
           <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
-              دیجی چاپوگراف
-            </h3>
-            <p className="text-slate-400 leading-relaxed">
-              ارائه دهنده خدمات چاپ و طراحی با بالاترین کیفیت و بهترین قیمت. ما به شما کمک می‌کنیم تا دیده شوید.
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <span className="font-bold text-lg">DG</span>
+              </div>
+              <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+                چاپوگراف
+              </h3>
+            </div>
+            <p className="text-gray-400 leading-relaxed text-sm">
+              اولین و بزرگترین پلتفرم چاپ آنلاین در ایران. ما کیفیت، سرعت و قیمت مناسب را تضمین می‌کنیم. ایده‌های خود را با ما به واقعیت تبدیل کنید.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 pt-4">
               {socialLinks.map((social, index) => (
                 <a
                   key={index}
                   href={social.href}
-                  className={`w-10 h-10 rounded-full bg-gradient-to-br ${social.color} flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg`}
+                  aria-label={social.label}
+                  className={`w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-gray-400 transition-all duration-300 hover:bg-white/10 hover:scale-110 ${social.color}`}
                 >
                   <social.icon className="w-5 h-5" />
                 </a>
@@ -97,17 +137,17 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 2: Quick Links */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-6 relative inline-block">
+            <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-purple-500" />
               دسترسی سریع
-              <span className="absolute -bottom-2 right-0 w-1/2 h-1 bg-purple-500 rounded-full"></span>
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  <a href={link.href} className="text-slate-400 hover:text-purple-400 transition-colors flex items-center gap-2 group">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 group-hover:w-3 transition-all" />
+                  <a href={link.href} className="text-gray-400 hover:text-purple-400 transition-colors flex items-center gap-2 text-sm group">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-purple-500 transition-colors" />
                     {link.label}
                   </a>
                 </li>
@@ -115,17 +155,17 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Column 3: Services */}
           <div>
-            <h4 className="text-lg font-semibold text-white mb-6 relative inline-block">
-              خدمات ما
-              <span className="absolute -bottom-2 right-0 w-1/2 h-1 bg-pink-500 rounded-full"></span>
+            <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-pink-500" />
+              خدمات مشتریان
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-4">
               {services.map((service, index) => (
                 <li key={index}>
-                  <a href={service.href} className="text-slate-400 hover:text-pink-400 transition-colors flex items-center gap-2 group">
-                    <CheckCircle className="w-4 h-4 text-pink-500 group-hover:scale-110 transition-transform" />
+                  <a href={service.href} className="text-gray-400 hover:text-pink-400 transition-colors flex items-center gap-2 text-sm group">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-600 group-hover:bg-pink-500 transition-colors" />
                     {service.label}
                   </a>
                 </li>
@@ -133,63 +173,77 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Stats */}
-          <div>
-            <h4 className="text-lg font-semibold text-white mb-6 relative inline-block">
-              آمار ما
-              <span className="absolute -bottom-2 right-0 w-1/2 h-1 bg-blue-500 rounded-full"></span>
+          {/* Column 4: Contact & Info */}
+          <div className="space-y-6">
+            <h4 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Phone className="w-5 h-5 text-blue-500" />
+              اطلاعات تماس
             </h4>
+
             <div className="space-y-4">
-              {stats.map((stat, index) => (
-                <div key={index} className="flex items-center gap-4 group">
-                  <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors border border-white/10">
-                    <stat.icon className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <div className="text-xl font-bold text-white">{stat.number}</div>
-                    <div className="text-sm text-slate-400">{stat.label}</div>
-                  </div>
+              <a href="tel:02112345678" className="flex items-center gap-4 text-gray-400 hover:text-white transition-colors group p-3 bg-white/5 rounded-xl border border-white/5 hover:border-purple-500/30">
+                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:text-purple-300 group-hover:bg-purple-500/20 transition-colors">
+                  <Phone className="w-5 h-5" />
                 </div>
-              ))}
+                <div className="text-sm">
+                  <div className="text-xs text-gray-500 mb-0.5">شماره تماس</div>
+                  <span className="font-bold dir-ltr block">۰۲۱-۱۲۳۴۵۶۷۸</span>
+                </div>
+              </a>
+
+              <div className="flex items-center gap-4 text-gray-400 group p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="w-10 h-10 rounded-full bg-pink-500/10 flex items-center justify-center text-pink-400">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div className="text-sm">
+                  <div className="text-xs text-gray-500 mb-0.5">ساعات کاری</div>
+                  <span className="font-bold">شنبه تا چهارشنبه ۸:۰۰ - ۱۷:۰۰</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 text-gray-400 group p-3 bg-white/5 rounded-xl border border-white/5">
+                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div className="text-sm">
+                  <div className="text-xs text-gray-500 mb-0.5">آدرس دفتر مرکزی</div>
+                  <span className="font-bold">تهران، خیابان انقلاب، پلاک ۱۱۰</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <Separator className="bg-white/10 mb-8" />
+        <Separator className="bg-white/10 my-8" />
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-slate-400">
-            <span>© ۱۴۰۲ دیجی چاپوگراف. تمام حقوق محفوظ است.</span>
-            <span className="hidden md:inline text-white/20">|</span>
-            <span className="flex items-center gap-1">
-              ساخته شده با
-              <Heart className="w-4 h-4 text-red-500 animate-pulse" />
-              توسط تیم دیجی چاپوگراف
-            </span>
+        {/* Bottom Bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8">
+          <div className="text-sm text-gray-500 text-center md:text-right">
+            © {new Date().getFullYear()} تمامی حقوق برای <span className="text-white font-medium">دیجی چاپوگراف</span> محفوظ است.
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="flex gap-6 text-sm text-slate-400">
-              <a href="#" className="hover:text-white transition-colors">حریم خصوصی</a>
-              <a href="#" className="hover:text-white transition-colors">شرایط استفاده</a>
-              <a href="#" className="hover:text-white transition-colors">سوالات متداول</a>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+              <CreditCard className="w-4 h-4 text-gray-400" />
+              <span className="text-xs text-gray-400">پرداخت امن</span>
             </div>
-
-            <Button
-              onClick={scrollToTop}
-              size="icon"
-              variant="outline"
-              className="rounded-full border-white/20 text-white hover:bg-white/10 hover:scale-110 transition-all duration-300"
-            >
-              <ArrowUp className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-1 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+              <ShieldCheck className="w-4 h-4 text-green-400" />
+              <span className="text-xs text-gray-400">نماد اعتماد</span>
+            </div>
           </div>
+
+          <Button
+            onClick={scrollToTop}
+            size="icon"
+            variant="ghost"
+            className="rounded-full bg-white/5 text-white hover:bg-purple-600 hover:text-white transition-all absolute left-4 bottom-4 md:static"
+            aria-label="Back to top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </Button>
         </div>
       </div>
-
-      {/* Floating Elements */}
-      <div className="absolute top-20 left-20 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl float-animation pointer-events-none"></div>
-      <div className="absolute bottom-20 right-20 w-24 h-24 bg-pink-500/10 rounded-full blur-3xl float-animation pointer-events-none" style={{ animationDelay: '2s' }}></div>
     </footer>
   );
 }

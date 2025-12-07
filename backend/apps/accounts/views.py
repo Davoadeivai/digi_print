@@ -163,10 +163,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         self.object.save()
         return Response({'detail': 'رمز عبور با موفقیت تغییر یافت.'})
 
-# -----------------------------
-# User Addresses
-# -----------------------------
-class UserAddressListCreateView(generics.ListCreateAPIView):
+class UserAddressViewSet(viewsets.ModelViewSet):
     serializer_class = UserAddressSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -181,19 +178,9 @@ class UserAddressListCreateView(generics.ListCreateAPIView):
         user_profile, created = UserProfile.objects.get_or_create(user=self.request.user)
         serializer.save(user_profile=user_profile)
 
-class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = UserAddressSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        try:
-            user_profile = UserProfile.objects.get(user=self.request.user)
-            return UserAddress.objects.filter(user_profile=user_profile)
-        except UserProfile.DoesNotExist:
-            return UserAddress.objects.none()
-    
+    @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
-        """تنظیم آدرس به عنوان پیش‌فرض - call this endpoint via POST to /addresses/{id}/set_default/"""
+        """تنظیم آدرس به عنوان پیش‌فرض"""
         address = self.get_object()
         user_profile = address.user_profile
         # Set all other addresses to non-default

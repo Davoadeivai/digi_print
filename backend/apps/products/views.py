@@ -9,8 +9,9 @@ from django.conf import settings
 
 from .models import (
     ProductCategory, Product, PaperType, ProductPaperType,
-    PricingRule, Order, OrderItem, UploadedFile
+    PricingRule, UploadedFile
 )
+from apps.orders.models import Order, OrderItem
 from .serializers import (
     ProductCategorySerializer, ProductSerializer, ProductDetailSerializer,
     PaperTypeSerializer, PricingRuleSerializer, OrderSerializer,

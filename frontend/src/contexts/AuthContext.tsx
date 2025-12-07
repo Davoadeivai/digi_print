@@ -138,194 +138,132 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const register = async (data: RegisterData) => {
-    try {
-      // Try real API first
-      try {
-        const response = await api.post('/accounts/register/', {
-          email: data.email,
-          full_name: data.full_name,
-          phone: data.phone,
-          password: data.password,
-          role: 'customer'
-        });
+    const response = await api.post('/accounts/register/', {
+      email: data.email,
+      full_name: data.full_name,
+      phone: data.phone,
+      password: data.password,
+      role: 'customer'
+    });
 
-        const { user: newUser, tokens } = response.data as any;
+    const { user: newUser, tokens } = response.data as any;
 
-        const userObject: User = {
-          id: newUser.id || newUser.user?.id,
-          email: newUser.email || newUser.user?.email,
-          full_name: newUser.full_name || newUser.user?.full_name || '',
-          phone: newUser.phone || newUser.user?.phone,
-          company: newUser.company || newUser.user?.company,
-          role: newUser.role || newUser.user?.role || 'customer',
-          role_display: newUser.role_display || newUser.user?.role_display || 'مشتری',
-          avatar: newUser.avatar || newUser.user?.avatar,
-          email_verified: newUser.email_verified || false,
-          is_store_admin: newUser.is_store_admin || false,
-          is_store_staff: newUser.is_store_staff || false,
-          is_staff: newUser.is_staff || false,
-          is_active: newUser.is_active ?? true,
-        };
+    const userObject: User = {
+      id: newUser.id || newUser.user?.id,
+      email: newUser.email || newUser.user?.email,
+      full_name: newUser.full_name || newUser.user?.full_name || '',
+      phone: newUser.phone || newUser.user?.phone,
+      company: newUser.company || newUser.user?.company,
+      role: newUser.role || newUser.user?.role || 'customer',
+      role_display: newUser.role_display || newUser.user?.role_display || 'مشتری',
+      avatar: newUser.avatar || newUser.user?.avatar,
+      email_verified: newUser.email_verified || false,
+      is_store_admin: newUser.is_store_admin || false,
+      is_store_staff: newUser.is_store_staff || false,
+      is_staff: newUser.is_staff || false,
+      is_active: newUser.is_active ?? true,
+    };
 
-        localStorage.setItem('access_token', tokens.access);
-        localStorage.setItem('refresh_token', tokens.refresh);
-        localStorage.setItem('user', JSON.stringify(userObject));
+    localStorage.setItem('access_token', tokens.access);
+    localStorage.setItem('refresh_token', tokens.refresh);
+    localStorage.setItem('user', JSON.stringify(userObject));
 
-        setUser(userObject);
-        return;
-      } catch (apiError) {
-        // Only use mock in development mode when API fails
-        if (import.meta.env.DEV) {
-          console.warn('⚠️ API unavailable, using mock registration (DEV only)');
-          const mockUser: User = {
-            id: Math.floor(Math.random() * 1000),
-            email: data.email,
-            full_name: data.full_name,
-            phone: data.phone || undefined,
-            company: data.company || undefined,
-            role: 'customer',
-            role_display: 'مشتری',
-            avatar: undefined,
-            email_verified: true,
-            is_store_admin: false,
-            is_store_staff: false,
-            is_staff: false,
-            is_active: true,
-          };
+    setUser(userObject);
+    return;
+  } catch (error: any) {
+    console.error('❌ خطا در ثبت‌نام:', error);
+    throw error.response?.data || { message: 'خطا در ثبت‌نام' };
+  }
+};
 
-          localStorage.setItem('access_token', 'mock_access_token');
-          localStorage.setItem('refresh_token', 'mock_refresh_token');
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          setUser(mockUser);
-          return;
-        }
-        throw apiError;
-      }
+const login = async (email: string, password: string) => {
+  try {
+    const response = await api.post('/accounts/login/', { email, password });
+    const { access, refresh } = response.data;
 
-    } catch (error: any) {
-      console.error('❌ خطا در ثبت‌نام:', error);
-      throw error.response?.data || { message: 'خطا در ثبت‌نام' };
+    // Get user profile after successful login
+    localStorage.setItem('access_token', access);
+    const profileResponse = await api.get('/accounts/profile/');
+    const userData = profileResponse.data as any;
+
+    const loggedUser: User = {
+      id: userData.id || userData.user?.id || 1,
+      email: userData.user?.email || email,
+      full_name: userData.user?.full_name || userData.user?.first_name + ' ' + userData.user?.last_name || 'کاربر',
+      phone: userData.user?.phone || '',
+      company: userData.user?.company,
+      role: userData.user?.role || 'customer',
+      role_display: userData.user?.role_display || 'مشتری',
+      avatar: userData.user?.avatar,
+      email_verified: userData.user?.email_verified || false,
+      is_store_admin: userData.user?.is_store_admin || false,
+      is_store_staff: userData.user?.is_store_staff || false,
+      is_staff: userData.user?.is_staff || false,
+      is_active: userData.user?.is_active ?? true,
+    };
+
+    localStorage.setItem('refresh_token', refresh);
+    localStorage.setItem('user', JSON.stringify(loggedUser));
+    setUser(loggedUser);
+    return;
+  } catch (error: any) {
+    console.error('❌ خطا در ورود:', error);
+    throw error.response?.data || error;
+  }
+};
+
+const logout = async () => {
+  try {
+    console.log('🔵 خروج از سیستم');
+
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (refreshToken) {
+      await api.post('/accounts/logout/', { refresh: refreshToken });
     }
-  };
+  } catch (error) {
+    console.error('❌ خطا در خروج از سرور:', error);
+  } finally {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user');
+    setUser(null);
+    console.log('✅ خروج موفق');
+  }
+};
 
-  const login = async (email: string, password: string) => {
-    try {
-      // Try real API first
-      try {
-        const response = await api.post('/accounts/login/', { email, password });
-        const { access, refresh } = response.data;
+const updateProfile = async (data: Partial<User>) => {
+  try {
+    console.log('🔵 بروزرسانی پروفایل:', data);
 
-        // Get user profile after successful login
-        localStorage.setItem('access_token', access);
-        const profileResponse = await api.get('/accounts/profile/');
-        const userData = profileResponse.data as any;
+    if (!user) throw { message: 'کاربر وارد نشده است' };
 
-        const loggedUser: User = {
-          id: userData.id || userData.user?.id || 1,
-          email: userData.user?.email || email,
-          full_name: userData.user?.full_name || userData.user?.first_name + ' ' + userData.user?.last_name || 'کاربر',
-          phone: userData.user?.phone || '',
-          company: userData.user?.company,
-          role: userData.user?.role || 'customer',
-          role_display: userData.user?.role_display || 'مشتری',
-          avatar: userData.user?.avatar,
-          email_verified: userData.user?.email_verified || false,
-          is_store_admin: userData.user?.is_store_admin || false,
-          is_store_staff: userData.user?.is_store_staff || false,
-          is_staff: userData.user?.is_staff || false,
-          is_active: userData.user?.is_active ?? true,
-        };
+    const response = await api.patch('/accounts/profile/', data);
+    const updatedUser = { ...user, ...response.data };
 
-        localStorage.setItem('refresh_token', refresh);
-        localStorage.setItem('user', JSON.stringify(loggedUser));
-        setUser(loggedUser);
-        return;
-      } catch (apiError) {
-        // Only use mock in development mode when API fails
-        if (import.meta.env.DEV) {
-          console.warn('⚠️ API unavailable, using mock login (DEV only)');
-          const mockUser: User = {
-            id: 1,
-            email: email,
-            full_name: 'کاربر تست',
-            phone: '09123456789',
-            company: undefined,
-            role: 'customer',
-            role_display: 'مشتری',
-            avatar: undefined,
-            email_verified: true,
-            is_store_admin: false,
-            is_store_staff: false,
-            is_staff: false,
-            is_active: true,
-          };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
 
-          localStorage.setItem('access_token', 'mock_access_token');
-          localStorage.setItem('refresh_token', 'mock_refresh_token');
-          localStorage.setItem('user', JSON.stringify(mockUser));
-          setUser(mockUser);
-          return;
-        }
-        throw apiError;
-      }
-    } catch (error: any) {
-      console.error('❌ خطا در ورود:', error);
-      throw error.response?.data || error;
-    }
-  };
+    console.log('✅ پروفایل بروزرسانی شد:', updatedUser);
+  } catch (error: any) {
+    console.error('❌ خطا در بروزرسانی پروفایل:', error);
+    throw error.response?.data || { message: 'خطا در بروزرسانی پروفایل' };
+  }
+};
 
-  const logout = async () => {
-    try {
-      console.log('🔵 خروج از سیستم');
+const value: AuthContextType = {
+  user,
+  loading,
+  login,
+  register,
+  logout,
+  updateProfile,
+  isAuthenticated: !!user,
+  isAdmin: user?.role === 'admin' || user?.is_store_admin || false,
+  isStaff: user?.role === 'staff' || user?.role === 'manager' || user?.role === 'admin' || user?.is_store_staff || false,
+  isManager: user?.role === 'manager' || user?.is_store_admin || false,
+};
 
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        await api.post('/accounts/logout/', { refresh: refreshToken });
-      }
-    } catch (error) {
-      console.error('❌ خطا در خروج از سرور:', error);
-    } finally {
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
-      setUser(null);
-      console.log('✅ خروج موفق');
-    }
-  };
-
-  const updateProfile = async (data: Partial<User>) => {
-    try {
-      console.log('🔵 بروزرسانی پروفایل:', data);
-
-      if (!user) throw { message: 'کاربر وارد نشده است' };
-
-      const response = await api.patch('/accounts/profile/', data);
-      const updatedUser = { ...user, ...response.data };
-
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-
-      console.log('✅ پروفایل بروزرسانی شد:', updatedUser);
-    } catch (error: any) {
-      console.error('❌ خطا در بروزرسانی پروفایل:', error);
-      throw error.response?.data || { message: 'خطا در بروزرسانی پروفایل' };
-    }
-  };
-
-  const value: AuthContextType = {
-    user,
-    loading,
-    login,
-    register,
-    logout,
-    updateProfile,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin' || user?.is_store_admin || false,
-    isStaff: user?.role === 'staff' || user?.role === 'manager' || user?.role === 'admin' || user?.is_store_staff || false,
-    isManager: user?.role === 'manager' || user?.is_store_admin || false,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

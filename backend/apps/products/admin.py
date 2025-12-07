@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     ProductCategory, Product, PaperType, ProductPaperType,
-    PricingRule, Order, OrderItem, UploadedFile
+    PricingRule, UploadedFile
 )
 
 @admin.register(ProductCategory)
@@ -52,46 +52,6 @@ class PricingRuleAdmin(admin.ModelAdmin):
     list_display = ['product', 'min_quantity', 'max_quantity', 'price_per_unit', 'is_active']
     list_filter = ['is_active', 'paper_type', 'has_lamination', 'has_uv']
     search_fields = ['product__name']
-
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 1
-    readonly_fields = ['total_price']
-
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_number', 'user', 'status', 'total_amount', 'created_at']
-    list_filter = ['status', 'delivery_method', 'urgent_order', 'created_at']
-    search_fields = ['order_number', 'contact_name', 'user__email']
-    readonly_fields = ['order_number', 'total_amount']
-    inlines = [OrderItemInline]
-    
-    fieldsets = (
-        ('اطلاعات سفارش', {
-            'fields': ('order_number', 'user', 'status', 'created_at')
-        }),
-        ('اطلاعات تماس', {
-            'fields': ('contact_name', 'contact_phone', 'contact_email')
-        }),
-        ('آدرس تحویل', {
-            'fields': ('delivery_address', 'delivery_city', 'delivery_postal_code')
-        }),
-        ('زمان‌بندی', {
-            'fields': ('delivery_method', 'delivery_date', 'urgent_order')
-        }),
-        ('مالی', {
-            'fields': ('subtotal', 'discount_amount', 'delivery_cost', 'total_amount')
-        }),
-        ('فایل‌ها و یادداشت‌ها', {
-            'fields': ('design_files', 'customer_notes', 'admin_notes')
-        }),
-    )
-
-@admin.register(OrderItem)
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ['order', 'product', 'quantity', 'unit_price', 'total_price']
-    list_filter = ['has_lamination', 'has_uv_coating', 'include_design']
-    search_fields = ['product__name', 'order__order_number']
 
 @admin.register(UploadedFile)
 class UploadedFileAdmin(admin.ModelAdmin):

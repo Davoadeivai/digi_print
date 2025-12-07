@@ -8,8 +8,7 @@ from .views import (
     UserLogoutView,
     UserProfileView,
     ChangePasswordView,
-    UserAddressListCreateView,
-    UserAddressDetailView,
+    UserAddressViewSet,
     UserActivityListView,
     UserActivityExportView,
     UserDashboardView,
@@ -39,8 +38,9 @@ urlpatterns = [
     path('dashboard/', UserDashboardView.as_view(), name='dashboard'),
 
     # Addresses
-    path('addresses/', UserAddressListCreateView.as_view(), name='address_list'),
-    path('addresses/<int:pk>/', UserAddressDetailView.as_view(), name='address_detail'),
+    path('addresses/', UserAddressViewSet.as_view({'get': 'list', 'post': 'create'}), name='address_list'),
+    path('addresses/<int:pk>/', UserAddressViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='address_detail'),
+    path('addresses/<int:pk>/set_default/', UserAddressViewSet.as_view({'post': 'set_default'}), name='address_set_default'),
 
     # Activities
     path('activities/', UserActivityListView.as_view(), name='activities'),

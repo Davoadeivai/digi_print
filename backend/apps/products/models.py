@@ -202,106 +202,7 @@ class PricingRule(models.Model):
         return self.min_quantity <= quantity <= self.max_quantity
 
 
-class Order(models.Model):
-    """
-    سفارشات مشتریان
-    """
-    STATUS_CHOICES = [
-        ('pending', 'در انتظار بررسی'),
-        ('confirmed', 'تأیید شده'),
-        ('in_progress', 'در حال انجام'),
-        ('ready', 'آماده تحویل'),
-        ('delivered', 'تحویل داده شده'),
-        ('cancelled', 'لغو شده'),
-    ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_orders')
-    order_number = models.CharField('شماره سفارش', max_length=20, unique=True)
-    status = models.CharField('وضعیت', max_length=20, choices=STATUS_CHOICES, default='pending')
-    
-    # اطلاعات تماس
-    contact_name = models.CharField('نام تماس', max_length=100)
-    contact_phone = models.CharField('تلفن تماس', max_length=20)
-    contact_email = models.EmailField('ایمیل تماس')
-    
-    # آدرس تحویل
-    delivery_address = models.TextField('آدرس تحویل')
-    delivery_city = models.CharField('شهر', max_length=50)
-    delivery_postal_code = models.CharField('کد پستی', max_length=10, blank=True)
-    
-    # زمان‌بندی
-    delivery_method = models.CharField('نحوه تحویل', max_length=50, default='پیک')
-    delivery_date = models.DateField('تاریخ تحویل', null=True, blank=True)
-    urgent_order = models.BooleanField('سفارش فوری', default=False)
-    
-    # مالی
-    subtotal = models.DecimalField('جمع کل', max_digits=12, decimal_places=0)
-    discount_amount = models.DecimalField('تخفیف', max_digits=10, decimal_places=0, default=0)
-    delivery_cost = models.DecimalField('هزینه ارسال', max_digits=8, decimal_places=0, default=0)
-    total_amount = models.DecimalField('مبلغ نهایی', max_digits=12, decimal_places=0)
-    
-    # فایل‌ها
-    design_files = models.FileField('فایل طراحی', upload_to='orders/designs/', null=True, blank=True)
-    
-    # یادداشت‌ها
-    customer_notes = models.TextField('یادداشت مشتری', blank=True)
-    admin_notes = models.TextField('یادداشت ادمین', blank=True)
-    
-    created_at = models.DateTimeField('تاریخ ایجاد', auto_now_add=True)
-    updated_at = models.DateTimeField('آخرین به‌روزرسانی', auto_now=True)
-
-    class Meta:
-        verbose_name = 'سفارش'
-        verbose_name_plural = 'سفارشات'
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"سفارش #{self.order_number}"
-
-    def save(self, *args, **kwargs):
-        if not self.order_number:
-            # ایجاد شماره سفارش منحصر به فرد
-            import uuid
-            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-        
-        # محاسبه مبلغ نهایی
-        self.total_amount = self.subtotal - self.discount_amount + self.delivery_cost
-        
-        super().save(*args, **kwargs)
-
-
-class OrderItem(models.Model):
-    """
-    آیتم‌های هر سفارش
-    """
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField('تعداد')
-    unit_price = models.DecimalField('قیمت واحد', max_digits=8, decimal_places=0)
-    total_price = models.DecimalField('قیمت کل', max_digits=10, decimal_places=0)
-    
-    # مشخصات فنی
-    paper_type = models.ForeignKey(PaperType, on_delete=models.SET_NULL, null=True, blank=True)
-    size_width = models.DecimalField('عرض (سانتی‌متر)', max_digits=6, decimal_places=2)
-    size_height = models.DecimalField('ارتفاع (سانتی‌متر)', max_digits=6, decimal_places=2)
-    has_lamination = models.BooleanField('لمینت', default=False)
-    has_uv_coating = models.BooleanField('پوشش UV', default=False)
-    include_design = models.BooleanField('شامل طراحی', default=False)
-    
-    # یادداشت‌های خاص این آیتم
-    special_instructions = models.TextField('دستورالعمل‌های خاص', blank=True)
-
-    class Meta:
-        verbose_name = 'آیتم سفارش'
-        verbose_name_plural = 'آیتم‌های سفارش'
-
-    def __str__(self):
-        return f"{self.product.name} - {self.quantity} عدد"
-
-    def save(self, *args, **kwargs):
-        # محاسبه قیمت کل
-        self.total_price = self.quantity * self.unit_price
-        super().save(*args, **kwargs)
 
 
 class UploadedFile(models.Model):
@@ -316,7 +217,7 @@ class UploadedFile(models.Model):
     
     # ارتباط با محصول یا سفارش
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
-    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey('orders.Order', on_delete=models.SET_NULL, null=True, blank=True)
     
     # پیش‌نمایش
     thumbnail = models.ImageField('تصویر بندانگشتی', upload_to='user_files/thumbnails/', null=True, blank=True)
