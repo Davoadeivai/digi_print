@@ -54,9 +54,15 @@ interface Category {
   product_count: number;
 }
 
+import { useParams } from 'react-router-dom';
+
 export default function LabelCategoryPage() {
+  // Inside component
+  const { slug: urlSlug } = useParams<{ slug: string }>();
   const { navigate, pageData } = useNavigation();
-  const slug = pageData?.slug || 'label';
+  // Prioritize URL slug, then pageData, then default
+  const slug = urlSlug || pageData?.slug || 'label';
+
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<LabelProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,61 +77,39 @@ export default function LabelCategoryPage() {
   const fetchCategoryData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching data for slug:', slug);
 
-      // Try to fetch categories
-      try {
-        const categoriesResponse = await fetch(`/api/v1/categories/`);
-        if (categoriesResponse.ok) {
-          const categoriesData = await categoriesResponse.json();
-          const categoryData = (categoriesData.results || categoriesData).find((cat: any) => cat.slug === slug);
+      // 1. Fetch Category Details by Slug directly
+      const categoryResponse = await fetch(`/api/v1/categories/${slug}/`);
 
-          if (categoryData) {
-            setCategory(categoryData);
-
-            // Fetch products for this category
-            const productsResponse = await fetch(`/api/v1/products/?category=${categoryData.id}`);
-            if (productsResponse.ok) {
-              const productsData = await productsResponse.json();
-              setProducts(productsData.results || productsData || []);
-            }
-          }
-        }
-      } catch (error) {
-        console.log('Categories API not available, using fallback');
+      if (!categoryResponse.ok) {
+        throw new Error('Category not found');
       }
 
-      // If no category found, use fallback data
-      if (!category) {
-        setCategory({
-          id: 1,
-          name: 'لیبل و برچسب',
-          slug: 'label',
-          description: 'چاپ انواع لیبل و برچسب با کیفیت بالا و قیمت مناسب',
-          product_count: 0
-        });
+      const categoryData = await categoryResponse.json();
+      setCategory(categoryData);
 
-        // Try to fetch all products as fallback
-        try {
-          const productsResponse = await fetch(`/api/v1/products/`);
-          if (productsResponse.ok) {
-            const productsData = await productsResponse.json();
-            setProducts(productsData.results || productsData || []);
-          }
-        } catch (error) {
-          console.log('Products API not available');
+      // 2. Fetch Products for this Category using the dedicated endpoint
+      // This endpoint handles subcategories automatically on the backend
+      const productsResponse = await fetch(`/api/v1/categories/${slug}/products/`);
+
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json();
+        setProducts(productsData.results || productsData || []);
+      } else {
+        // Fallback to query param filtering if the dedicated action fails
+        const fallbackResponse = await fetch(`/api/v1/products/?category=${categoryData.id}`);
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          setProducts(fallbackData.results || fallbackData || []);
         }
       }
 
     } catch (error) {
       console.error('Error loading category:', error);
-      // Set fallback category
-      setCategory({
-        id: 1,
-        name: 'محصولات',
-        slug: slug,
-        description: 'مشاهده تمام محصولات',
-        product_count: 0
-      });
+      setCategory(null);
+      setProducts([]); // Clear products if category not found to avoid showing wrong items
+      toast.error('دسته‌بندی مورد نظر یافت نشد');
     } finally {
       setLoading(false);
     }
