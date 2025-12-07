@@ -30,6 +30,19 @@ class ProductCategory(models.Model):
     def get_absolute_url(self):
         return reverse('products:category_detail', kwargs={'slug': self.slug})
 
+    def get_descendants(self, include_self=True):
+        """
+        بازگرداندن تمام زیرمجموعه‌ها به صورت بازگشتی
+        """
+        descendants = []
+        if include_self:
+            descendants.append(self)
+        
+        for child in self.children.all():
+            descendants.extend(child.get_descendants(include_self=True))
+            
+        return descendants
+
 
 class Product(models.Model):
     """
