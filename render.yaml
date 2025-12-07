@@ -40,11 +40,12 @@ services:
 
   # Frontend Static Site
   # Frontend Static Site
-  - type: static
+  - type: web
     name: daidi-print-frontend
+    env: static
     rootDir: frontend
     buildCommand: "npm install && npm run build"
-    publishPath: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
