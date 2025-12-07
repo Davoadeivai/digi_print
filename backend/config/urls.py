@@ -42,7 +42,12 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# همهٔ مسیرهای غیر admin و غیر api را به React (index.html) بده
+from django.http import JsonResponse
+
+def api_root(request):
+    return JsonResponse({"message": "DigiChapograph API is running. Access endpoints at /api/v1/"})
+
+# Serve root URL
 urlpatterns += [
-    re_path(r'^(?!admin/|api/).*$', TemplateView.as_view(template_name="index.html"), name='frontend'),
+    path('', api_root, name='api_root'),
 ]
