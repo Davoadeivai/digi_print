@@ -57,5 +57,4 @@ services:
 databases:
   - name: daidi-print-db
     databaseName: daidi_print
-    user: postgres
     plan: free
