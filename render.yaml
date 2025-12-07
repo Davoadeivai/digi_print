@@ -39,7 +39,7 @@ services:
         value: /media/
 
   # Frontend Static Site
-  - type: static
+  - type: web
     name: daidi-print-frontend
     env: static
     rootDir: frontend
