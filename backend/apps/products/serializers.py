@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import (
     ProductCategory, Product, PaperType, ProductPaperType,
-    PricingRule, Order, OrderItem, UploadedFile
+    PricingRule, UploadedFile
 )
+from apps.orders.models import Order, OrderItem
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):

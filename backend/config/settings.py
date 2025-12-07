@@ -60,7 +60,9 @@ CSRF_COOKIE_HTTPONLY = True
 # Trusted origins
 CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in ALLOWED_HOSTS if host]
 
+# ==============================
 # Applications
+# ==============================
 INSTALLED_APPS = [
     # Django
     'django.contrib.admin',
@@ -77,14 +79,14 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     
-    # Local
-    'apps.accounts',
-    'apps.core',
-    'apps.products',
-    'apps.services',
-    'apps.portfolio',
-    'apps.contact',
-    'apps.orders',
+    # Local apps with AppConfig
+    'apps.accounts.apps.AccountsConfig',
+    'apps.core.apps.CoreConfig',
+    'apps.products.apps.ProductsConfig',
+    'apps.services.apps.ServicesConfig',
+    'apps.portfolio.apps.PortfolioConfig',
+    'apps.contact.apps.ContactConfig',
+    'apps.orders.apps.OrdersConfig',
 ]
 
 MIDDLEWARE = [
