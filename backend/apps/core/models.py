@@ -92,3 +92,83 @@ class Settings(models.Model):
             defaults={'value': value, 'description': description}
         )
         return obj
+
+
+class NewsletterSubscriber(models.Model):
+    email = models.EmailField(_('ایمیل'), unique=True)
+    is_active = models.BooleanField(_('فعال'), default=True)
+    subscribed_at = models.DateTimeField(_('تاریخ عضویت'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('مشترک خبرنامه')
+        verbose_name_plural = _('مشترکین خبرنامه')
+        ordering = ['-subscribed_at']
+
+    def __str__(self):
+        return self.email
+
+
+class CompanySettings(models.Model):
+    """
+    تنظیمات شرکت
+    برای مدیریت اطلاعات شرکت از پنل ادمین
+    """
+    name = models.CharField(_('نام شرکت'), max_length=200)
+    description = models.TextField(_('توضیحات کوتاه'), blank=True)
+    about = models.TextField(_('درباره ما'), blank=True)
+    phone = models.CharField(_('تلفن'), max_length=20, blank=True)
+    email = models.EmailField(_('ایمیل'), blank=True)
+    address = models.TextField(_('آدرس'), blank=True)
+    working_hours = models.CharField(_('ساعات کاری'), max_length=200, blank=True)
+    social_media = models.JSONField(_('شبکه‌های اجتماعی'), default=dict, blank=True)
+    logo = models.ImageField(_('لوگو'), upload_to='company/', blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('تنظیمات شرکت')
+        verbose_name_plural = _('تنظیمات شرکت')
+    
+    def __str__(self):
+        return self.name or 'تنظیمات شرکت'
+    
+    @classmethod
+    def get_settings(cls):
+        """دریافت تنظیمات شرکت (singleton pattern)"""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings
+
+
+class UploadedFile(models.Model):
+    """
+    فایل‌های آپلود شده
+    برای مدیریت فایل‌های آپلود شده توسط کاربران
+    """
+    file = models.FileField(_('فایل'), upload_to='uploads/%Y/%m/%d/')
+    folder = models.CharField(_('پوشه'), max_length=100, blank=True)
+    original_name = models.CharField(_('نام اصلی'), max_length=255)
+    file_size = models.IntegerField(_('حجم فایل (بایت)'), default=0)
+    file_type = models.CharField(_('نوع فایل'), max_length=100, blank=True)
+    uploaded_by = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.CASCADE,
+        related_name='core_uploaded_files',
+        verbose_name=_('آپلود شده توسط')
+    )
+    is_public = models.BooleanField(_('عمومی'), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = _('فایل آپلود شده')
+        verbose_name_plural = _('فایل‌های آپلود شده')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.original_name
+    
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.file_size = self.file.size
+            self.original_name = self.file.name
+        super().save(*args, **kwargs)

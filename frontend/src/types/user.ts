@@ -3,6 +3,7 @@ export enum UserRole {
     ADMIN = 'admin',
     STAFF = 'staff',
     MANAGER = 'manager',
+    ORDER_PROCESSOR = 'order_processor',
 }
 
 export interface User {
@@ -16,6 +17,7 @@ export interface User {
     role: UserRole;
     role_display: string;
     avatar?: string;
+    is_superuser?: boolean;
     is_store_admin: boolean;
     is_store_staff: boolean;
     is_staff: boolean;

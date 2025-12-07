@@ -171,3 +171,94 @@ class UserActivity(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.activity_type}"
+
+
+class Wallet(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(_('موجودی'), max_digits=12, decimal_places=0, default=0)
+    updated_at = models.DateTimeField(_('آخرین بروزرسانی'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('کیف پول')
+        verbose_name_plural = _('کیف‌های پول')
+
+    def __str__(self):
+        return f"کیف پول {self.user.email}"
+
+
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('charge', 'شارژ'),
+        ('withdraw', 'برداشت'),
+        ('purchase', 'خرید'),
+        ('refund', 'بازگشت وجه'),
+    ]
+
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(_('مبلغ'), max_digits=12, decimal_places=0)
+    transaction_type = models.CharField(_('نوع تراکنش'), max_length=20, choices=TRANSACTION_TYPES)
+    description = models.TextField(_('توضیحات'), blank=True)
+    created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('تراکنش کیف پول')
+        verbose_name_plural = _('تراکنش‌های کیف پول')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - {self.amount}"
+
+
+class UserSession(models.Model):
+    """
+    نشست‌های فعال کاربر
+    برای مدیریت و نمایش نشست‌های فعال کاربر
+    """
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='sessions')
+    session_key = models.CharField(_('کلید نشست'), max_length=40, unique=True)
+    ip_address = models.GenericIPAddressField(_('آی‌پی'))
+    device_type = models.CharField(_('نوع دستگاه'), max_length=50, blank=True)
+    location = models.CharField(_('موقعیت'), max_length=200, blank=True)
+    is_active = models.BooleanField(_('فعال'), default=True)
+    last_activity = models.DateTimeField(_('آخرین فعالیت'), auto_now=True)
+    created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('نشست کاربر')
+        verbose_name_plural = _('نشست‌های کاربر')
+        ordering = ['-last_activity']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.device_type}"
+
+
+class SecurityLog(models.Model):
+    """
+    لاگ‌های امنیتی
+    برای ثبت رویدادهای امنیتی حساب کاربر
+    """
+    SECURITY_ACTIONS = [
+        ('login_success', 'ورود موفق'),
+        ('login_failed', 'ورود ناموفق'),
+        ('logout', 'خروج'),
+        ('password_changed', 'تغییر رمز عبور'),
+        ('password_reset', 'بازیابی رمز عبور'),
+        ('email_changed', 'تغییر ایمیل'),
+        ('phone_changed', 'تغییر موبایل'),
+        ('suspicious_activity', 'فعالیت مشکوک'),
+    ]
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='security_logs')
+    action = models.CharField(_('عملیات'), max_length=50, choices=SECURITY_ACTIONS)
+    ip_address = models.GenericIPAddressField(_('آی‌پی'))
+    user_agent = models.TextField(_('User Agent'), blank=True)
+    details = models.JSONField(_('جزئیات'), default=dict, blank=True)
+    created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('لاگ امنیتی')
+        verbose_name_plural = _('لاگ‌های امنیتی')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} - {self.get_action_display()}"

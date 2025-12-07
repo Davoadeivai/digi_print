@@ -4,6 +4,7 @@ export type Page =
   | 'home' | 'about' | 'services' | 'service-detail' | 'portfolio' | 'portfolio-detail'
   | 'contact' | 'order' | 'pricing' | 'price-calculator' | 'blog' | 'gallery'
   | 'register' | 'login' | 'dashboard' | 'profile' | 'my-orders' | 'wallet' | 'addresses'
+  | 'activities' | 'security'
   | 'products' | 'product-detail' | 'category' | 'label' | 'label-category';
 
 export interface ServiceDetail {
@@ -40,27 +41,74 @@ interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | null>(null);
 
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
 export function NavigationProvider({ children }: { children: ReactNode }) {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const navigateRouter = useNavigate();
+  const location = useLocation();
   const [pageData, setPageData] = useState<any>(null);
+  // history is managed by router now, but we keep this state for compatibility if needed. 
+  // Ideally we should remove it, but let's keep it simple for now or mock it.
   const [history, setHistory] = useState<{ page: Page; data?: any }[]>([{ page: 'home' }]);
 
+  // Derive currentPage from location.pathname
+  const getCurrentPage = (path: string): Page => {
+    if (path === '/' || path === '') return 'home';
+    if (path.startsWith('/register')) return 'register';
+    if (path.startsWith('/login')) return 'login';
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/services')) return path.includes('/') ? 'service-detail' : 'services';
+    if (path.startsWith('/portfolio')) return path.includes('/') ? 'portfolio-detail' : 'portfolio';
+    if (path.startsWith('/products')) return 'products';
+    if (path.startsWith('/category')) return 'category';
+    if (path.startsWith('/label-category')) return 'label-category';
+    if (path.startsWith('/label')) return 'label';
+    if (path.startsWith('/order')) return 'order';
+    if (path.startsWith('/price-calculator')) return 'price-calculator';
+    if (path.startsWith('/wallet')) return 'wallet';
+    if (path.startsWith('/profile')) return 'profile';
+    if (path.startsWith('/activities')) return 'activities';
+    if (path.startsWith('/security')) return 'security';
+    if (path.startsWith('/addresses')) return 'addresses';
+    if (path.startsWith('/contact')) return 'contact';
+
+    return 'home'; // Default
+  };
+
+  const currentPage = getCurrentPage(location.pathname);
+
   const navigate = (page: Page, data?: any) => {
-    setHistory(prev => [...prev, { page, data }]);
-    setCurrentPage(page);
     setPageData(data);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    let path = '/';
+    switch (page) {
+      case 'home': path = '/'; break;
+      case 'register': path = '/register'; break;
+      case 'login': path = '/login'; break;
+      case 'dashboard': path = '/dashboard'; break;
+      case 'services': path = '/services'; break;
+      case 'service-detail': path = `/services/${data?.id || ''}`; break;
+      case 'portfolio': path = '/portfolio'; break;
+      case 'portfolio-detail': path = `/portfolio/${data?.id || ''}`; break;
+      case 'products': path = '/products'; break;
+      case 'category': path = `/category/${data?.slug || ''}`; break;
+      case 'label-category': path = `/label-category/${data?.slug || ''}`; break;
+      case 'label': path = `/label/${data?.slug || ''}`; break;
+      case 'order': path = '/order'; break;
+      case 'price-calculator': path = '/price-calculator'; break;
+      case 'wallet': path = '/wallet'; break;
+      case 'profile': path = '/profile'; break;
+      case 'activities': path = '/activities'; break;
+      case 'security': path = '/security'; break;
+      case 'addresses': path = '/addresses'; break;
+      case 'contact': path = '/contact'; break;
+      default: path = '/';
+    }
+    navigateRouter(path);
   };
 
   const goBack = () => {
-    if (history.length > 1) {
-      const newHistory = history.slice(0, -1);
-      const previousPage = newHistory[newHistory.length - 1];
-      setHistory(newHistory);
-      setCurrentPage(previousPage.page);
-      setPageData(previousPage.data);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    navigateRouter(-1);
   };
 
   return (

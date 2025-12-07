@@ -253,3 +253,55 @@ class UserAdminSerializer(serializers.ModelSerializer):
             'is_superuser', 'email_verified', 'date_joined', 'total_orders'
         ]
         read_only_fields = ['id', 'date_joined', 'total_orders']
+
+
+# -----------------------------
+# Wallet Serializers
+# -----------------------------
+from .models import Wallet, WalletTransaction
+
+class WalletTransactionSerializer(serializers.ModelSerializer):
+    transaction_type_display = serializers.CharField(source='get_transaction_type_display', read_only=True)
+    
+    class Meta:
+        model = WalletTransaction
+        fields = ['id', 'amount', 'transaction_type', 'transaction_type_display', 'description', 'created_at']
+        read_only_fields = ['id', 'created_at', 'transaction_type_display']
+
+class WalletSerializer(serializers.ModelSerializer):
+    transactions = WalletTransactionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Wallet
+        fields = ['id', 'balance', 'updated_at', 'transactions']
+        read_only_fields = ['id', 'balance', 'updated_at', 'transactions']
+
+
+# -----------------------------
+# Security Serializers
+# -----------------------------
+from .models import UserSession, SecurityLog
+
+class UserSessionSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    
+    class Meta:
+        model = UserSession
+        fields = [
+            'id', 'user', 'user_email', 'session_key', 'ip_address',
+            'device_type', 'location', 'is_active', 'last_activity', 'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'last_activity', 'created_at']
+
+
+class SecurityLogSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+    
+    class Meta:
+        model = SecurityLog
+        fields = [
+            'id', 'user', 'user_email', 'action', 'action_display',
+            'ip_address', 'user_agent', 'details', 'created_at'
+        ]
+        read_only_fields = ['id', 'user', 'created_at']

@@ -24,13 +24,14 @@ class ProductCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = ProductCategory.objects.filter(is_active=True, parent=None)
     serializer_class = ProductCategorySerializer
+    lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
     filter_backends = [SearchFilter, OrderingFilter]
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
 
     @action(detail=True, methods=['get'])
-    def products(self, request, pk=None):
+    def products(self, request, slug=None):
         """دریافت محصولات یک دسته‌بندی خاص"""
         category = self.get_object()
         products = Product.objects.filter(
@@ -46,6 +47,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     ویوست برای محصولات چاپی
     """
     queryset = Product.objects.filter(is_active=True)
+    lookup_field = 'slug'
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['category', 'print_type', 'is_featured']

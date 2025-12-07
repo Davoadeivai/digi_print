@@ -5,7 +5,8 @@ import csv
 from django.http import HttpResponse
 from django.utils import timezone
 
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -190,6 +191,16 @@ class UserAddressDetailView(generics.RetrieveUpdateDestroyAPIView):
             return UserAddress.objects.filter(user_profile=user_profile)
         except UserProfile.DoesNotExist:
             return UserAddress.objects.none()
+    
+    def set_default(self, request, pk=None):
+        """تنظیم آدرس به عنوان پیش‌فرض - call this endpoint via POST to /addresses/{id}/set_default/"""
+        address = self.get_object()
+        user_profile = address.user_profile
+        # Set all other addresses to non-default
+        UserAddress.objects.filter(user_profile=user_profile).update(is_default=False)
+        address.is_default = True
+        address.save()
+        return Response({'status': 'set as default'})
 
 # -----------------------------
 # User Activities
@@ -249,3 +260,63 @@ class AdminUserListView(generics.ListAPIView):
     serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAdminUser]
     queryset = CustomUser.objects.all()
+
+
+# -----------------------------
+# Wallet Views
+# -----------------------------
+from .models import Wallet, WalletTransaction
+from .serializers import WalletSerializer, WalletTransactionSerializer
+
+class WalletViewSet(viewsets.GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = WalletSerializer
+
+    def get_queryset(self):
+        return Wallet.objects.filter(user=self.request.user)
+
+    def get_object(self):
+        wallet, created = Wallet.objects.get_or_create(user=self.request.user)
+        return wallet
+
+    def list(self, request):
+        wallet = self.get_object()
+        serializer = self.get_serializer(wallet)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def transactions(self, request):
+        wallet = self.get_object()
+        transactions = wallet.transactions.all()
+        page = self.paginate_queryset(transactions)
+        if page is not None:
+            serializer = WalletTransactionSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = WalletTransactionSerializer(transactions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def charge(self, request):
+        amount = request.data.get('amount')
+        if not amount:
+            return Response({'error': 'Amount is required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            amount = int(amount)
+            if amount <= 0:
+                raise ValueError
+        except ValueError:
+            return Response({'error': 'Invalid amount'}, status=status.HTTP_400_BAD_REQUEST)
+
+        wallet = self.get_object()
+        wallet.balance += amount
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type='charge',
+            description='شارژ دستی کیف پول'
+        )
+
+        return Response({'status': 'charged', 'balance': wallet.balance})

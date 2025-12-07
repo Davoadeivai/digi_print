@@ -1,4 +1,5 @@
 from django.db import models
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.conf import settings
@@ -96,7 +97,7 @@ class Product(models.Model):
             else:
                 # اگر قیمت واحد اضافی مشخص نشده، از تخفیف حجمی استفاده کن
                 discount_rate = min(extra_units * 0.02, 0.3)  # حداکثر 30% تخفیف
-                base_total *= (1 - discount_rate)
+                base_total *= (1 - Decimal(str(discount_rate)))
         
         # اضافه کردن هزینه‌های اضافی بر اساس kwargs
         extra_cost = 0
@@ -201,7 +202,7 @@ class Order(models.Model):
         ('cancelled', 'لغو شده'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='product_orders')
     order_number = models.CharField('شماره سفارش', max_length=20, unique=True)
     status = models.CharField('وضعیت', max_length=20, choices=STATUS_CHOICES, default='pending')
     

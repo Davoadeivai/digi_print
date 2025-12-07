@@ -16,7 +16,7 @@ class AccountsAPITestCase(APITestCase):
             full_name="Test User",
             password="TestPass123!",
         )
-        self.user_profile = UserProfile.objects.create(user=self.user)
+        self.user_profile = self.user.profile
 
         # ایجاد یک کاربر ادمین
         self.admin = CustomUser.objects.create_superuser(
@@ -66,7 +66,7 @@ class AccountsAPITestCase(APITestCase):
         # Retrieve
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user'], self.user.id)
+        self.assertIn(self.user.email, response.data['user'])  # user is StringRelatedField
 
         # Update
         data = {"bio": "Updated bio"}
@@ -100,7 +100,15 @@ class AccountsAPITestCase(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
 
         # Create
-        data = {"address_line": "123 Test St", "city": "TestCity", "postal_code": "12345", "country": "TestLand"}
+        data = {
+            "title": "Home",
+            "full_name": "Test User",
+            "phone": "09123456789",
+            "province": "Tehran",
+            "city": "TestCity",
+            "address": "123 Test St",
+            "postal_code": "12345"
+        }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         address_id = response.data['id']
@@ -122,12 +130,13 @@ class AccountsAPITestCase(APITestCase):
     # -----------------------------
     def test_user_activities(self):
         self.test_user_login()
-        UserActivity.objects.create(user=self.user, action="Test Action")
+        UserActivity.objects.create(user=self.user, activity_type="login", description="Test Login")
         url = reverse('accounts:activities')
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.access_token}')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        # بررسی می‌کنیم که حداقل یک فعالیت وجود دارد (سیگنال‌های لاگین فعالیت‌های اضافی ایجاد می‌کنند)
+        self.assertTrue(len(response.data) >= 1)
 
     # -----------------------------
     # Dashboard

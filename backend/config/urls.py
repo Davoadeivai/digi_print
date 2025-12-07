@@ -26,10 +26,15 @@ urlpatterns = [
     # API v1
     path('api/v1/accounts/', include('apps.accounts.urls')),
     path('api/v1/', include('apps.products.urls')),
-    # path('api/v1/orders/', include('apps.orders.urls')),
-    # path('api/v1/services/', include('apps.services.urls')),
-    # path('api/v1/portfolio/', include('apps.portfolio.urls')),
-    # path('api/v1/contact/', include('apps.contact.urls')),
+    path('api/v1/orders/', include('apps.orders.urls')),
+    path('api/v1/services/', include('apps.services.urls')),
+    path('api/v1/portfolio/', include('apps.portfolio.urls')),
+    path('api/v1/contact/', include('apps.contact.urls')),
+    path('api/v1/newsletter/', include('apps.core.urls')),
+    path('api/v1/company/', include('apps.core.urls')),  # Company settings
+    path('api/v1/files/', include('apps.core.urls')),  # File upload
+    path('api/v1/wallet/', include('apps.accounts.wallet_urls')),
+    path('api/v1/analytics/', include('apps.core.analytics_urls')),
 ]
 
 # Serve media files in development

@@ -40,8 +40,9 @@ class UserApiClient {
   private token: string | null;
 
   constructor() {
-    this.baseURL = 'http://localhost:8000';
-    this.token = localStorage.getItem('digiprint_auth_token');
+    // Use environment variable for production compatibility
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    this.token = localStorage.getItem('access_token'); // Unified token key
   }
 
   private getHeaders(): Record<string, string> {
@@ -286,7 +287,7 @@ export class UserManagementService {
     const formData = new FormData();
     formData.append('avatar', file);
 
-    const token = localStorage.getItem('digiprint_auth_token');
+    const token = localStorage.getItem('access_token');
     const response = await fetch('http://localhost:8000/accounts/api/profile/', {
       method: 'PATCH',
       headers: {

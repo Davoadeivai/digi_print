@@ -1,12 +1,7 @@
-import { Header } from './components/Header';
-import { Hero } from './components/Hero';
-import { About } from './components/About';
-import { Services } from './components/Services';
-import { Portfolio } from './components/Portfolio';
-import { Contact } from './components/Contact';
-import { Footer } from './components/Footer';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Layout } from './components/Layout';
 import { Toaster } from './components/ui/sonner';
-import { NavigationProvider, useNavigation } from './contexts/NavigationContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 import { BackendProvider } from './contexts/BackendContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ServiceDetailPage } from './components/pages/ServiceDetailPage';
@@ -18,152 +13,42 @@ import UserDashboard from './components/pages/UserDashboard';
 import PriceCalculatorPage from './components/pages/PriceCalculatorPage';
 import UserWalletPage from './components/pages/UserWalletPage';
 import UserAddressesPage from './components/pages/UserAddressesPage';
+import UserProfilePage from './components/pages/UserProfilePage';
+import UserActivitiesPage from './components/pages/UserActivitiesPage';
+import SecuritySettingsPage from './components/pages/SecuritySettingsPage';
 import LabelPage from './components/pages/LabelPage';
 import LabelCategoryPage from './components/pages/LabelCategoryPage';
 import ProductsPage from './components/pages/ProductsPage';
+import HomePage from './components/pages/HomePage';
 
 function AppContent() {
-  const { currentPage } = useNavigation();
-
-  // Home Page Content
-  const HomePage = () => (
-    <>
-      <Header />
-      <main>
-        <Hero />
-        <About />
-        <Services />
-        <Portfolio />
-        <Contact />
-      </main>
-      <Footer />
-    </>
-  );
-
-  // Render based on current page
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'register':
-        return (
-          <>
-            <Header />
-            <RegisterPage />
-            <Footer />
-          </>
-        );
-      case 'login':
-        return (
-          <>
-            <Header />
-            <LoginPage />
-            <Footer />
-          </>
-        );
-      case 'dashboard':
-        return (
-          <>
-            <Header />
-            <UserDashboard />
-            <Footer />
-          </>
-        );
-      case 'service-detail':
-        return (
-          <>
-            <Header />
-            <ServiceDetailPage />
-            <Footer />
-          </>
-        );
-      case 'portfolio-detail':
-        return (
-          <>
-            <Header />
-            <PortfolioDetailPage />
-            <Footer />
-          </>
-        );
-      case 'products':
-      return (
-        <>
-          <Header />
-          <main>
-            <ProductsPage />
-          </main>
-          <Footer />
-        </>
-      );
-      case 'category':
-      return (
-        <>
-          <Header />
-          <main>
-            <LabelCategoryPage />
-          </main>
-          <Footer />
-        </>
-      );
-    case 'label':
-      return (
-        <>
-          <Header />
-          <main>
-            <LabelPage />
-          </main>
-          <Footer />
-        </>
-      );
-    case 'label-category':
-      return (
-        <>
-          <Header />
-          <main>
-            <LabelCategoryPage />
-          </main>
-          <Footer />
-        </>
-      );
-    case 'order':
-        return (
-          <>
-            <Header />
-            <OrderPage />
-            <Footer />
-          </>
-        );
-      case 'price-calculator':
-        return (
-          <>
-            <Header />
-            <PriceCalculatorPage />
-            <Footer />
-          </>
-        );
-      case 'wallet':
-        return (
-          <>
-            <Header />
-            <UserWalletPage />
-            <Footer />
-          </>
-        );
-      case 'addresses':
-        return (
-          <>
-            <Header />
-            <UserAddressesPage />
-            <Footer />
-          </>
-        );
-      case 'home':
-      default:
-        return <HomePage />;
-    }
-  };
-
   return (
     <div className="min-h-screen">
-      {renderPage()}
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
+          <Route path="/services" element={<HomePage />} /> {/* Anchor link in Home usually, or separate page if exists. Mapping to Home for now as per original structure */}
+          <Route path="/services/:id" element={<ServiceDetailPage />} />
+          <Route path="/portfolio" element={<HomePage />} /> {/* Anchor link in Home */}
+          <Route path="/portfolio/:id" element={<PortfolioDetailPage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/category/:slug" element={<LabelCategoryPage />} />
+          <Route path="/label-category/:slug" element={<LabelCategoryPage />} />
+          <Route path="/label/:slug" element={<LabelPage />} />
+          <Route path="/order" element={<OrderPage />} />
+          <Route path="/price-calculator" element={<PriceCalculatorPage />} />
+          <Route path="/wallet" element={<UserWalletPage />} />
+          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/activities" element={<UserActivitiesPage />} />
+          <Route path="/security" element={<SecuritySettingsPage />} />
+          <Route path="/addresses" element={<UserAddressesPage />} />
+          <Route path="/contact" element={<HomePage />} /> {/* Anchor link in Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
       <Toaster
         position="top-right"
         richColors
@@ -181,12 +66,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BackendProvider>
-        <NavigationProvider>
-          <AppContent />
-        </NavigationProvider>
-      </BackendProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <BackendProvider>
+          <NavigationProvider>
+            <AppContent />
+          </NavigationProvider>
+        </BackendProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }

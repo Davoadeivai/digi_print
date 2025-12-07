@@ -123,6 +123,7 @@ class ApiClient {
 }
 
 // API Client Instance
+// API Client Instance
 const apiClient = new ApiClient({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
   timeout: 10000,
@@ -136,22 +137,22 @@ const apiClient = new ApiClient({
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/auth/login/',
-    LOGOUT: '/auth/logout/',
-    REGISTER: '/auth/register/',
-    REFRESH: '/auth/refresh/',
-    USER: '/auth/user/',
+    LOGIN: '/accounts/login/',
+    LOGOUT: '/accounts/logout/',
+    REGISTER: '/accounts/register/',
+    REFRESH: '/accounts/token/refresh/',
+    USER: '/accounts/profile/',
   },
 
   // User Management
   USER: {
-    PROFILE: '/user/profile/',
+    PROFILE: '/accounts/profile/',
     ADDRESSES: {
-      LIST: '/user/addresses/',
-      CREATE: '/user/addresses/',
-      UPDATE: (id: number) => `/user/addresses/${id}/`,
-      DELETE: (id: number) => `/user/addresses/${id}/`,
-      SET_DEFAULT: (id: number) => `/user/addresses/${id}/set_default/`,
+      LIST: '/accounts/addresses/',
+      CREATE: '/accounts/addresses/',
+      UPDATE: (id: number) => `/accounts/addresses/${id}/`,
+      DELETE: (id: number) => `/accounts/addresses/${id}/`,
+      SET_DEFAULT: (id: number) => `/accounts/addresses/${id}/set_default/`,
     },
   },
 
@@ -613,6 +614,44 @@ export const handleAPIError = (error: any) => {
     errors: null,
   };
 };
+
+// Security Service
+export class SecurityService {
+  static async getSessions() {
+    // Mock data - در آینده باید به API واقعی متصل شود
+    return Promise.resolve([
+      {
+        id: 1,
+        device_type: 'Chrome on Windows',
+        ip_address: '192.168.1.1',
+        location: 'تهران، ایران',
+        last_activity: new Date().toISOString(),
+        is_active: true,
+      },
+    ]);
+  }
+
+  static async terminateSession(sessionId: number) {
+    // Mock implementation
+    return Promise.resolve({ success: true });
+  }
+
+  static async getSecurityLogs() {
+    // Mock data
+    return Promise.resolve([
+      {
+        id: 1,
+        action: 'login_success',
+        ip_address: '192.168.1.1',
+        created_at: new Date().toISOString(),
+      },
+    ]);
+  }
+
+  static async changePassword(data: { old_password: string; new_password: string; new_password_confirm: string }) {
+    return apiClient.post('/accounts/change-password/', data);
+  }
+}
 
 // Export UserManagementService from the main user-management.ts file
 // This avoids duplication and ensures consistency
