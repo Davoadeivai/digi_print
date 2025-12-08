@@ -208,7 +208,7 @@ export default function UserWalletPage() {
             opacity: 0;
             transform: translateY(30px);
           }
-          to {
+          100% {
             opacity: 1;
             transform: translateY(0);
           }

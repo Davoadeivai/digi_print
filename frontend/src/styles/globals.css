@@ -547,7 +547,7 @@
       opacity: 0;
     }
 
-    to {
+    100% {
       opacity: 1;
     }
   }
@@ -558,7 +558,7 @@
       transform: translateY(10px);
     }
 
-    to {
+    100% {
       opacity: 1;
       transform: translateY(0);
     }
@@ -570,7 +570,7 @@
       transform: translateX(-20px);
     }
 
-    to {
+    100% {
       opacity: 1;
       transform: translateX(0);
     }
