@@ -31,7 +31,10 @@ services:
   # ---------- React Frontend (Static) ----------
   - type: static
     name: daidi-print-frontend
-    buildCommand: cd frontend && npm install && npm run build -- --base=/   # مهم: base درست
+    buildCommand: |
+      cd frontend
+      npm install
+      VITE_API_BASE_URL=https://daidi-print-backend.onrender.com/api/v1 npm run build -- --base="/"
     staticPublishPath: frontend/dist
     envVars:
       - key: VITE_API_BASE_URL
