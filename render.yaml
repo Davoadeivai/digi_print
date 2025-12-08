@@ -32,6 +32,7 @@ services:
   - type: static
     name: daidi-print-frontend
     buildCommand: |
+      cd "$HOME"
       cd frontend
       npm install
       VITE_API_BASE_URL=https://daidi-print-backend.onrender.com/api/v1 npm run build -- --base="/"
