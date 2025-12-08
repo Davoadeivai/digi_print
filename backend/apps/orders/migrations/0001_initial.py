@@ -10,37 +10,10 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('products', '0003_alter_uploadedfile_order_remove_orderitem_order_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='Order',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.IntegerField()),
-                ('total_price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('status', models.CharField(choices=[('pending', 'در انتظار تأیید'), ('confirmed', 'تأیید شده'), ('processing', 'در حال پردازش'), ('shipped', 'ارسال شده'), ('delivered', 'تحویل داده شده'), ('cancelled', 'لغو شده')], default='pending', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='orders', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'ordering': ['-created_at'],
-            },
-        ),
-        migrations.CreateModel(
-            name='OrderItem',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveIntegerField()),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='orders.order')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='products.product')),
-            ],
-        ),
         migrations.CreateModel(
             name='QuoteRequest',
             fields=[
@@ -52,17 +25,17 @@ class Migration(migrations.Migration):
                 ('project_details', models.TextField(verbose_name='جزئیات پروژه')),
                 ('budget_range', models.CharField(blank=True, max_length=100, verbose_name='بودجه تقریبی')),
                 ('deadline', models.DateField(blank=True, null=True, verbose_name='مهلت تحویل')),
-                ('files', models.JSONField(blank=True, default=list, verbose_name='فایل\u200cهای پیوست')),
+                ('files', models.JSONField(blank=True, default=list, verbose_name='فایل‌های پیوست')),
                 ('special_requirements', models.TextField(blank=True, verbose_name='نیازهای خاص')),
                 ('status', models.CharField(choices=[('pending', 'در انتظار بررسی'), ('processing', 'در حال پردازش'), ('designing', 'در حال طراحی'), ('printing', 'در حال چاپ'), ('completed', 'تکمیل شده'), ('cancelled', 'لغو شده')], default='pending', max_length=20, verbose_name='وضعیت')),
-                ('admin_notes', models.TextField(blank=True, verbose_name='یادداشت\u200cهای ادمین')),
+                ('admin_notes', models.TextField(blank=True, verbose_name='یادداشت‌های ادمین')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='تاریخ ایجاد')),
                 ('updated_at', models.DateTimeField(auto_now=True, verbose_name='آخرین بروزرسانی')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quote_requests', to=settings.AUTH_USER_MODEL, verbose_name='کاربر')),
             ],
             options={
                 'verbose_name': 'درخواست قیمت',
-                'verbose_name_plural': 'درخواست\u200cهای قیمت',
+                'verbose_name_plural': 'درخواست‌های قیمت',
                 'ordering': ['-created_at'],
             },
         ),
