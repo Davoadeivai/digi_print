@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Toaster } from './components/ui/sonner';
 import { NavigationProvider } from './contexts/NavigationContext';
@@ -20,6 +21,16 @@ import LabelPage from './components/pages/LabelPage';
 import LabelCategoryPage from './components/pages/LabelCategoryPage';
 import ProductsPage from './components/pages/ProductsPage';
 import HomePage from './components/pages/HomePage';
+
+function CatchAllRoute() {
+  const navigate = useNavigate();
+  
+  React.useEffect(() => {
+    navigate('/', { replace: true });
+  }, [navigate]);
+  
+  return null;
+}
 
 function AppContent() {
   return (
@@ -46,7 +57,7 @@ function AppContent() {
           <Route path="/security" element={<SecuritySettingsPage />} />
           <Route path="/addresses" element={<UserAddressesPage />} />
           <Route path="/contact" element={<HomePage />} /> {/* Anchor link in Home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<CatchAllRoute />} />
         </Routes>
       </Layout>
       <Toaster
