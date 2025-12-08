@@ -29,7 +29,7 @@ function getEnvVar(key: string, defaultValue: string): string {
 // تنظیمات اصلی
 export const ENV_CONFIG = {
   // API Base URL
-  API_URL: getEnvVar('VITE_API_URL', 'http://127.0.0.1:8000/api/v1'),
+  API_URL: getEnvVar('VITE_API_BASE_URL', 'http://127.0.0.1:8000/api/v1'),
   
   // App Settings
   APP_NAME: 'دیجی چاپوگراف',

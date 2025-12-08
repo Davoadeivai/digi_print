@@ -3,6 +3,7 @@
 
 import { User, UserStats, UserPermissions, UserRole } from '../types/user';
 import apiClient, { API_ENDPOINTS } from './api';
+import { API_URL } from '../config/env';
 
 // NXTBN-Style API Endpoints
 const USER_API_ENDPOINTS = {
@@ -211,7 +212,6 @@ export class UserManagementService {
     formData.append('avatar', file);
 
     const token = localStorage.getItem('access_token');
-    const API_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
     const response = await fetch(`${API_URL}/accounts/api/profile/`, {
       method: 'PATCH',
