@@ -1,17 +1,8 @@
-import { Hero } from '../Hero';
-import { About } from '../About';
-import { Services } from '../Services';
-import { Portfolio } from '../Portfolio';
-import { Contact } from '../Contact';
-
 export default function HomePage() {
     return (
-        <>
-            <Hero />
-            <About />
-            <Services />
-            <Portfolio />
-            <Contact />
-        </>
+        <div className="min-h-screen flex items-center justify-center">
+            <h1 className="text-4xl font-bold">دیجی چاپوگراف</h1>
+            <p>صفحه در حال تعمیر است...</p>
+        </div>
     );
 }
