@@ -26,7 +26,7 @@ services:
 
   # ---------- React Frontend (Static) ----------
   - type: static
-    name: daidi-print-frontend
+    name: daidi-print-frontend-v2
     rootDir: frontend
     buildCommand: |
       npm install
