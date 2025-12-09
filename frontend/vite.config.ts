@@ -22,7 +22,7 @@ export default defineConfig({
     emptyOutDir: true,
     chunkSizeWarningLimit: 1600, // برای فایل‌های بزرگ React
 
-    minify: 'terser', // تغییر minifier از esbuild به terser (این باگ xc رو حل می‌کنه)
+    minify: 'terser', // تغییر minifier از esbuild به terser
     terserOptions: {
       compress: {
         drop_console: false, // برای دیباگ نگه دار
@@ -35,15 +35,11 @@ export default defineConfig({
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
 
-        // تنظیمات ضد باگ initialization
         hoistTransitiveImports: false,
-        manualChunks: undefined, // chunking رو غیرفعال می‌کنه
+        manualChunks: undefined, 
         inlineDynamicImports: false,
-        experimentalMinifyLiterals: false, // minify ساده‌تر
-        sanitizeForIife: true, // برای IIFE mode (production) ایمن‌تر
       },
 
-      // غیرفعال کردن tree-shaking سخت‌گیرانه (بعضی React کامپوننت‌ها رو خراب می‌کنه)
       treeshake: {
         moduleSideEffects: false,
         propertyReadSideEffects: false,
@@ -52,7 +48,6 @@ export default defineConfig({
     },
   },
 
-  // غیرفعال کردن esbuild برای build (فقط dev استفاده کن)
   esbuild: {
     target: 'es2020', // target بالاتر برای React
   },
