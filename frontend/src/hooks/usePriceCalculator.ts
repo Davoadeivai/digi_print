@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
-interface PriceCalculator {
+export interface PriceCalculator {
   quantity: number;
   size_width: number;
   size_height: number;
@@ -11,28 +11,14 @@ interface PriceCalculator {
   has_uv_coating: boolean;
 }
 
-interface CalculatedPrice {
+export interface CalculatedPrice {
   total_price: number;
   unit_price: number;
   delivery_time_hours: number;
-  breakdown?: {
-    base_price: number;
-    design_price?: number;
-    lamination_price?: number;
-    uv_price?: number;
-  };
+  breakdown?: Record<string, number>;
 }
 
-interface UsePriceCalculatorReturn {
-  calculatorData: PriceCalculator;
-  setCalculatorData: (data: PriceCalculator) => void;
-  calculatedPrice: CalculatedPrice | null;
-  calculating: boolean;
-  error: string | null;
-  calculatePrice: () => Promise<void>;
-}
-
-export const usePriceCalculator = (productId?: number): UsePriceCalculatorReturn => {
+export function usePriceCalculator(productId?: number) {
   const [calculatorData, setCalculatorData] = useState<PriceCalculator>({
     quantity: 100,
     size_width: 5,
@@ -41,7 +27,6 @@ export const usePriceCalculator = (productId?: number): UsePriceCalculatorReturn
     has_lamination: false,
     has_uv_coating: false
   });
-
   const [calculatedPrice, setCalculatedPrice] = useState<CalculatedPrice | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,46 +34,29 @@ export const usePriceCalculator = (productId?: number): UsePriceCalculatorReturn
   const calculatePrice = useCallback(async () => {
     if (!productId) {
       setError('محصول انتخاب نشده');
+      toast.error('محصول انتخاب نشده');
       return;
     }
-
     try {
       setCalculating(true);
       setError(null);
-
-      const response = await fetch(`/api/v1/products/${productId}/calculate_price/`, {
+      const res = await fetch(`/api/v1/products/${productId}/calculate_price/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          ...calculatorData
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ product_id: productId, ...calculatorData })
       });
-
-      if (!response.ok) {
-        throw new Error('خطا در محاسبه قیمت');
-      }
-
-      const data: CalculatedPrice = await response.json();
+      if (!res.ok) throw new Error('خطا در محاسبه قیمت');
+      const data: CalculatedPrice = await res.json();
       setCalculatedPrice(data);
-      toast.success('قیمت محاسبه شد ✓');
+      toast.success('قیمت محاسبه شد');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'خطا در محاسبه قیمت';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const msg = err instanceof Error ? err.message : 'خطا در محاسبه قیمت';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setCalculating(false);
     }
   }, [productId, calculatorData]);
 
-  return {
-    calculatorData,
-    setCalculatorData,
-    calculatedPrice,
-    calculating,
-    error,
-    calculatePrice
-  };
-};
+  return { calculatorData, setCalculatorData, calculatedPrice, calculating, error, calculatePrice };
+}

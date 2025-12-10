@@ -2,11 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface WishlistItem {
+  id: number;
   product_id: number;
   name: string;
   image: string;
   price: number;
-  slug: string;
 }
 
 interface UseWishlistReturn {

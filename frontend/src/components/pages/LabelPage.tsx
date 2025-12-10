@@ -26,13 +26,15 @@ import {
   FileText,
   Users,
   Sparkles,
-  ThumbsUp
+  ThumbsUp,
+  Heart,
+  ShoppingCart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProductData } from '../../hooks/useProductData';
 import { usePriceCalculator } from '../../hooks/usePriceCalculator';
-import { Heart } from 'lucide-react';
 import { useWishlist } from '../../hooks/useWishlist';
+import { useCart } from '../../hooks/useCart';
 import ReviewForm from '../ReviewForm';
 
 interface LabelProduct {
@@ -93,8 +95,11 @@ export default function LabelPage() {
     calculatePrice 
   } = usePriceCalculator(product?.id);
   const { isFavorite, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addItem } = useCart();
 
   const handleWishlist = () => {
+    if (!product) return;
+    
     if (isFavorite(product.id)) {
       removeFromWishlist(product.id);
     } else {
@@ -103,13 +108,33 @@ export default function LabelPage() {
         name: product.name,
         image: product.image_url || '',
         price: product.base_price,
-        slug: product.slug
+        id: product.id
       });
     }
   };
 
   const handleAddToCart = () => {
-    // به سبد خرید اضافه کن
+    if (!product || !calculatedPrice) {
+      toast.error('لطفا ابتدا قیمت را محاسبه کنید');
+      return;
+    }
+
+    const cartItem = {
+      id: `${product.id}-${Date.now()}`,
+      product_id: product.id,
+      quantity: calculatorData.quantity,
+      size_width: calculatorData.size_width,
+      size_height: calculatorData.size_height,
+      price: calculatedPrice.unit_price,
+      options: {
+        design: calculatorData.include_design,
+        lamination: calculatorData.has_lamination,
+        uv_coating: calculatorData.has_uv_coating
+      }
+    };
+
+    addItem(cartItem);
+    toast.success(`${calculatorData.quantity} عدد به سبد خرید اضافه شد`);
   };
 
   if (loading) {
@@ -548,7 +573,8 @@ export default function LabelPage() {
               <CardContent className="space-y-3">
                 <Button 
                   onClick={handleAddToCart}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 font-semibold shadow-lg hover:shadow-xl transition-all"
+                  disabled={!calculatedPrice}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                 >
                   <ShoppingCart className="w-4 h-4 ml-2" />
                   افزودن به سبد خرید
@@ -557,13 +583,20 @@ export default function LabelPage() {
                   onClick={handleWishlist}
                   variant="outline"
                   className={`w-full h-11 border-2 font-semibold transition-all ${
-                    isFavorite(product.id)
-                      ? 'bg-red-50 border-red-500 text-red-600'
-                      : 'hover:border-red-500 hover:bg-red-50'
+                    product && isFavorite(product.id)
+                      ? 'bg-red-50 border-red-500 text-red-600 hover:bg-red-100'
+                      : 'border-gray-300 hover:border-red-500 hover:bg-red-50'
                   }`}
                 >
-                  <Heart className={`w-4 h-4 ml-2 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
-                  {isFavorite(product.id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+                  <Heart 
+                    className={`w-4 h-4 ml-2 ${
+                      product && isFavorite(product.id) ? 'fill-current' : ''
+                    }`} 
+                  />
+                  {product && isFavorite(product.id) 
+                    ? 'حذف از علاقه‌مندی‌ها' 
+                    : 'افزودن به علاقه‌مندی‌ها'
+                  }
                 </Button>
                 <Button variant="outline" className="w-full h-11 border-2 hover:border-purple-500 hover:bg-purple-50 font-semibold transition-all">
                   <MessageCircle className="w-4 h-4 ml-2" />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 
-interface LabelProduct {
+export interface LabelProduct {
   id: number;
   name: string;
   slug: string;
@@ -18,45 +18,27 @@ interface LabelProduct {
   has_online_calculator: boolean;
   has_file_upload: boolean;
   is_featured: boolean;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-  };
-  available_papers?: Array<{
-    id: number;
-    name: string;
-    gram_weight: number;
-    price_per_sheet: number;
-    is_fancy: boolean;
-    texture: string;
-  }>;
+  category: { id: number; name: string; slug: string; };
+  available_papers?: Array<{ id: number; name: string; gram_weight: number; price_per_sheet: number; is_fancy: boolean; texture: string; }>;
 }
 
-interface UseProductDataReturn {
-  product: LabelProduct | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-}
+const cache = new Map<string, { ts: number; data: LabelProduct }>();
+const CACHE_MS = 5 * 60 * 1000;
 
-const productCache = new Map<string, { data: LabelProduct; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-export const useProductData = (slug?: string): UseProductDataReturn => {
+export function useProductData(slug?: string) {
   const [product, setProduct] = useState<LabelProduct | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(!!slug);
   const [error, setError] = useState<string | null>(null);
 
   const fetchProduct = useCallback(async () => {
     if (!slug) {
+      setProduct(null);
       setLoading(false);
       return;
     }
 
-    // بررسی Cache
-    const cached = productCache.get(slug);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    const cached = cache.get(slug);
+    if (cached && Date.now() - cached.ts < CACHE_MS) {
       setProduct(cached.data);
       setLoading(false);
       return;
@@ -65,21 +47,15 @@ export const useProductData = (slug?: string): UseProductDataReturn => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`/api/v1/products/${slug}/`);
-      
-      if (!response.ok) {
-        throw new Error('محصول یافت نشد');
-      }
-      
-      const data: LabelProduct = await response.json();
+      const res = await fetch(`/api/v1/products/${slug}/`);
+      if (!res.ok) throw new Error('محصول یافت نشد');
+      const data: LabelProduct = await res.json();
       setProduct(data);
-      
-      // ذخیره در Cache
-      productCache.set(slug, { data, timestamp: Date.now() });
+      cache.set(slug, { ts: Date.now(), data });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'خطا در بارگذاری محصول';
-      setError(errorMessage);
-      toast.error(errorMessage);
+      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری محصول';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -90,4 +66,4 @@ export const useProductData = (slug?: string): UseProductDataReturn => {
   }, [fetchProduct]);
 
   return { product, loading, error, refetch: fetchProduct };
-};
+}
