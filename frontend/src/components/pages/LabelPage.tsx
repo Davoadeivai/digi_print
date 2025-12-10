@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -29,6 +29,11 @@ import {
   ThumbsUp
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useProductData } from '../../hooks/useProductData';
+import { usePriceCalculator } from '../../hooks/usePriceCalculator';
+import { Heart } from 'lucide-react';
+import { useWishlist } from '../../hooks/useWishlist';
+import ReviewForm from '../ReviewForm';
 
 interface LabelProduct {
   id: number;
@@ -75,67 +80,36 @@ interface PriceCalculator {
 export default function LabelPage() {
   const { navigate, pageData } = useNavigation();
   const slug = pageData?.slug;
-  const [product, setProduct] = useState<LabelProduct | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [calculatorData, setCalculatorData] = useState<PriceCalculator>({
-    quantity: 100,
-    size_width: 5,
-    size_height: 5,
-    include_design: false,
-    has_lamination: false,
-    has_uv_coating: false
-  });
-  const [calculatedPrice, setCalculatedPrice] = useState<any>(null);
-  const [calculating, setCalculating] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  useEffect(() => {
-    if (slug) {
-      fetchProduct();
-    }
-  }, [slug]);
+  // استفاده از Custom Hooks
+  const { product, loading, error: productError } = useProductData(slug);
+  const { 
+    calculatorData, 
+    setCalculatorData, 
+    calculatedPrice, 
+    calculating, 
+    error: calculatorError,
+    calculatePrice 
+  } = usePriceCalculator(product?.id);
+  const { isFavorite, addToWishlist, removeFromWishlist } = useWishlist();
 
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/v1/products/${slug}/`);
-      if (!response.ok) throw new Error('محصول یافت نشد');
-      const data = await response.json();
-      setProduct(data);
-    } catch (error) {
-      toast.error('خطا در بارگذاری محصول');
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const handleWishlist = () => {
+    if (isFavorite(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist({
+        product_id: product.id,
+        name: product.name,
+        image: product.image_url || '',
+        price: product.base_price,
+        slug: product.slug
+      });
     }
   };
 
-  const calculatePrice = async () => {
-    if (!product) return;
-
-    try {
-      setCalculating(true);
-      const response = await fetch(`/api/v1/products/${product.id}/calculate_price/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-          ...calculatorData
-        })
-      });
-
-      if (!response.ok) throw new Error('خطا در محاسبه قیمت');
-      const data = await response.json();
-      setCalculatedPrice(data);
-      toast.success('قیمت محاسبه شد');
-    } catch (error) {
-      toast.error('خطا در محاسبه قیمت');
-      console.error(error);
-    } finally {
-      setCalculating(false);
-    }
+  const handleAddToCart = () => {
+    // به سبد خرید اضافه کن
   };
 
   if (loading) {
@@ -156,11 +130,13 @@ export default function LabelPage() {
     );
   }
 
-  if (!product) {
+  if (productError || !product) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">محصول یافت نشد</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {productError || 'محصول یافت نشد'}
+          </h1>
           <Button onClick={() => navigate('category', { slug: 'label' })}>
             بازگشت به محصولات
           </Button>
@@ -391,6 +367,7 @@ export default function LabelPage() {
 
               {/* Reviews Tab */}
               <TabsContent value="reviews" className="space-y-6 mt-6">
+                <ReviewForm productId={product.id} />
                 <Card className="shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-2xl">
@@ -511,6 +488,12 @@ export default function LabelPage() {
                   <span className="text-sm font-medium text-gray-700">پوشش UV</span>
                 </label>
 
+                {calculatorError && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg mb-4">
+                    <p className="text-sm text-red-700">{calculatorError}</p>
+                  </div>
+                )}
+
                 <Button 
                   onClick={calculatePrice} 
                   disabled={calculating}
@@ -563,9 +546,24 @@ export default function LabelPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 font-semibold shadow-lg hover:shadow-xl transition-all">
-                  <Upload className="w-4 h-4 ml-2" />
-                  آپلود فایل و سفارش
+                <Button 
+                  onClick={handleAddToCart}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-11 font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <ShoppingCart className="w-4 h-4 ml-2" />
+                  افزودن به سبد خرید
+                </Button>
+                <Button
+                  onClick={handleWishlist}
+                  variant="outline"
+                  className={`w-full h-11 border-2 font-semibold transition-all ${
+                    isFavorite(product.id)
+                      ? 'bg-red-50 border-red-500 text-red-600'
+                      : 'hover:border-red-500 hover:bg-red-50'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ml-2 ${isFavorite(product.id) ? 'fill-current' : ''}`} />
+                  {isFavorite(product.id) ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
                 </Button>
                 <Button variant="outline" className="w-full h-11 border-2 hover:border-purple-500 hover:bg-purple-50 font-semibold transition-all">
                   <MessageCircle className="w-4 h-4 ml-2" />

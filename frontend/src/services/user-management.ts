@@ -2,19 +2,18 @@
 // Comprehensive API service for user CRUD, stats, and permissions
 
 import { User, UserStats, UserPermissions, UserRole } from '../types/user';
-import apiClient, { API_ENDPOINTS } from './api';
+import apiClient from './api';
 import { API_URL } from '../config/env';
 
-// NXTBN-Style API Endpoints
+// Use the API_ENDPOINTS from the api.ts file
 const USER_API_ENDPOINTS = {
-  ...API_ENDPOINTS.USER,
-  PROFILE: '/accounts/api/profile/',
-  STATS: '/accounts/api/stats/',
-  PERMISSIONS: '/accounts/api/permissions/',
-  LIST: '/accounts/api/users/',
-  DETAIL: (id: number) => `/accounts/api/users/${id}/`,
-  UPDATE_ROLE: (id: number) => `/accounts/api/users/${id}/role/`,
-};
+  PROFILE: '/accounts/profile/',
+  STATS: '/accounts/stats/',
+  PERMISSIONS: '/accounts/permissions/',
+  LIST: '/accounts/users/',
+  DETAIL: (id: number) => `/accounts/users/${id}/`,
+  UPDATE_ROLE: (id: number) => `/accounts/users/${id}/role/`,
+} as const;
 
 interface PaginationParams {
   page?: number;
