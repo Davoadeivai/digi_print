@@ -11,14 +11,14 @@ export interface PriceCalculator {
   has_uv_coating: boolean;
 }
 
-export interface CalculatedPrice {
+interface CalculatedPrice {
   total_price: number;
   unit_price: number;
   delivery_time_hours: number;
-  breakdown?: Record<string, number>;
+  breakdown?: Record<string, any>;
 }
 
-export function usePriceCalculator(productId?: number) {
+export const usePriceCalculator = (productId?: number) => {
   const [calculatorData, setCalculatorData] = useState<PriceCalculator>({
     quantity: 100,
     size_width: 5,
@@ -34,7 +34,6 @@ export function usePriceCalculator(productId?: number) {
   const calculatePrice = useCallback(async () => {
     if (!productId) {
       setError('محصول انتخاب نشده');
-      toast.error('محصول انتخاب نشده');
       return;
     }
     try {
@@ -46,11 +45,11 @@ export function usePriceCalculator(productId?: number) {
         body: JSON.stringify({ product_id: productId, ...calculatorData })
       });
       if (!res.ok) throw new Error('خطا در محاسبه قیمت');
-      const data: CalculatedPrice = await res.json();
+      const data = await res.json();
       setCalculatedPrice(data);
       toast.success('قیمت محاسبه شد');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در محاسبه قیمت';
+      const msg = err instanceof Error ? err.message : 'خطا';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -59,4 +58,4 @@ export function usePriceCalculator(productId?: number) {
   }, [productId, calculatorData]);
 
   return { calculatorData, setCalculatorData, calculatedPrice, calculating, error, calculatePrice };
-}
+};

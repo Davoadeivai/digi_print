@@ -1,11 +1,11 @@
 param(
-  [string]$Message = "chore(frontend): update LabelPage and add hooks",
+  [string]$Message = "chore: apply frontend hooks and components",
   [switch]$Push
 )
 
 # Validate git repository
 if (-not (Test-Path ".git")) {
-  Write-Error "This folder is not a git repository. cd to the project root containing .git"
+  Write-Error "This folder is not a git repository. Run this script from project root containing .git"
   exit 1
 }
 
@@ -19,7 +19,7 @@ Write-Host "Committing with message: $Message"
 git commit -m $Message
 
 if ($LASTEXITCODE -ne 0) {
-  Write-Error "git commit failed. If there are no changes to commit, this will exit with code."
+  Write-Error "git commit failed or no changes to commit."
   exit $LASTEXITCODE
 }
 

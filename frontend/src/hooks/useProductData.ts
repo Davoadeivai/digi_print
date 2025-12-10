@@ -19,15 +19,22 @@ export interface LabelProduct {
   has_file_upload: boolean;
   is_featured: boolean;
   category: { id: number; name: string; slug: string; };
-  available_papers?: Array<{ id: number; name: string; gram_weight: number; price_per_sheet: number; is_fancy: boolean; texture: string; }>;
+  available_papers?: Array<{
+    id: number;
+    name: string;
+    gram_weight: number;
+    price_per_sheet: number;
+    is_fancy: boolean;
+    texture: string;
+  }>;
 }
 
-const cache = new Map<string, { ts: number; data: LabelProduct }>();
+const productCache = new Map<string, { data: LabelProduct; ts: number }>();
 const CACHE_MS = 5 * 60 * 1000;
 
-export function useProductData(slug?: string) {
+export const useProductData = (slug?: string) => {
   const [product, setProduct] = useState<LabelProduct | null>(null);
-  const [loading, setLoading] = useState<boolean>(!!slug);
+  const [loading, setLoading] = useState(Boolean(slug));
   const [error, setError] = useState<string | null>(null);
 
   const fetchProduct = useCallback(async () => {
@@ -37,7 +44,7 @@ export function useProductData(slug?: string) {
       return;
     }
 
-    const cached = cache.get(slug);
+    const cached = productCache.get(slug);
     if (cached && Date.now() - cached.ts < CACHE_MS) {
       setProduct(cached.data);
       setLoading(false);
@@ -49,11 +56,11 @@ export function useProductData(slug?: string) {
       setError(null);
       const res = await fetch(`/api/v1/products/${slug}/`);
       if (!res.ok) throw new Error('محصول یافت نشد');
-      const data: LabelProduct = await res.json();
+      const data = await res.json();
       setProduct(data);
-      cache.set(slug, { ts: Date.now(), data });
+      productCache.set(slug, { data, ts: Date.now() });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'خطا در بارگذاری محصول';
+      const msg = err instanceof Error ? err.message : 'خطا';
       setError(msg);
       toast.error(msg);
     } finally {
@@ -66,4 +73,4 @@ export function useProductData(slug?: string) {
   }, [fetchProduct]);
 
   return { product, loading, error, refetch: fetchProduct };
-}
+};
