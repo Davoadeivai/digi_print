@@ -1,8 +1,7 @@
-from django.urls import path
 from . import views
+from django.urls import path
 
 app_name = 'services'
-
 urlpatterns = [
     path('', views.ServiceViewSet.as_view({'get': 'list', 'post': 'create'}), name='service-list'),
     path('active/', views.ServiceViewSet.as_view({'get': 'active'}), name='service-active'),

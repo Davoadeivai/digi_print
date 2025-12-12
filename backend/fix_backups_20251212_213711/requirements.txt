@@ -1,0 +1,23 @@
+# Core
+Django==5.0.1
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+django-cors-headers==4.3.1
+django-filter==23.5
+django-allauth==0.58.2
+django-environ==0.11.2
+gunicorn==21.2.0
+whitenoise==6.6.0
+Pillow==11.3.0
+
+# Database
+psycopg2-binary==2.9.11
+
+# Utils
+python-dateutil==2.8.2
+pytz==2023.3
+requests==2.31.0
+python-dotenv==1.0.0
+dj-database-url==1.2.0
+drf-yasg
+

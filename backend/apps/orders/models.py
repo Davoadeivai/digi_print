@@ -1,6 +1,5 @@
-from django.db import models
 from django.conf import settings
-
+from django.db import models
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -11,7 +10,6 @@ class Order(models.Model):
         ("delivered", "تحویل داده شده"),
         ("cancelled", "لغو شده"),
     ]
-
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     product_name = models.CharField(max_length=255)
     product_id = models.IntegerField(null=True, blank=True)
@@ -20,10 +18,8 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
     class Meta:
         ordering = ['-created_at']
-
     def __str__(self):
         user_repr = self.user.username if self.user else 'anonymous'
         return f'Order {self.id} - {user_repr} - {self.product_name}'

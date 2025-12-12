@@ -1,9 +1,8 @@
+from .models import Service
+from .serializers import ServiceSerializer
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from .models import Service
-from .serializers import ServiceSerializer
 
 class ServiceViewSet(viewsets.ModelViewSet):
     """
@@ -13,7 +12,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'slug'
-    
     def get_queryset(self):
         """
         Optionally filter by 'is_active' flag.
@@ -24,7 +22,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
             is_active = is_active.lower() in ('true', '1', 't')
             queryset = queryset.filter(is_active=is_active)
         return queryset
-    
     @action(detail=False, methods=['get'])
     def active(self, request):
         """
