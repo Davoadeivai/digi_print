@@ -1,0 +1,25 @@
+# ???? ???? ???? ?????
+$root = Get-Location
+while (-not (Test-Path "$root\package.json") -and $root.Parent) {
+    $root = $root.Parent
+}
+if (-not (Test-Path "$root\package.json")) {
+    Write-Host "package.json ???? ???! ???? ????? ????? ???." -ForegroundColor Red
+    pause
+    exit
+}
+Set-Location $root
+Write-Host "????? ???? ??: $root" -ForegroundColor Green
+
+# ????? ?????? base ?? vite.config
+$configPath = "vite.config.js", "vite.config.ts" | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $configPath) {
+    Write-Host "vite.config.js ????? ?????..."
+    @'
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  base: '/',
+})
