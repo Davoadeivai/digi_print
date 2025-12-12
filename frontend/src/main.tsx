@@ -1,4 +1,4 @@
-
+import { runDebugger } from './debugger.js'
 import React, { StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -91,3 +91,4 @@ if (rootElement) {
 } else {
   console.error('Element with id "root" not found in the document.');
 }
+runDebugger() 
