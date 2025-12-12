@@ -139,7 +139,8 @@ const apiClient = new ApiClient({
 export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
-    LOGIN: '/accounts/login/',
+    // Login uses JWT token obtain endpoint on the backend
+    LOGIN: '/accounts/token/',
     LOGOUT: '/accounts/logout/',
     REGISTER: '/accounts/register/',
     REFRESH: '/accounts/token/refresh/',
@@ -187,10 +188,10 @@ export const API_ENDPOINTS = {
 
   // Contact
   CONTACT: {
-    MESSAGES: '/contact/messages/',
-    CREATE: '/contact/messages/',
-    DETAIL: (id: number) => `/contact/messages/${id}/`,
-    MARK_READ: (id: number) => `/contact/messages/${id}/mark_read/`,
+    // Backend exposes contact create endpoint at /contact/
+    CREATE: '/contact/',
+    DETAIL: (id: number) => `/contact/${id}/`,
+    MARK_READ: (id: number) => `/contact/${id}/mark_read/`,
   },
 
   // Company
