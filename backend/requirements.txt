@@ -18,10 +18,6 @@ python-dateutil==2.8.2
 pytz==2023.3
 requests==2.31.0
 python-dotenv==1.0.0
-dj-database-url
-drf-yasg
-
-# Environment / database helpers
-django-environ==0.11.2
 dj-database-url==1.2.0
+drf-yasg
 
