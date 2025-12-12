@@ -1,12 +1,40 @@
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/poppins/400.css';
-@import '@fontsource/poppins/500.css';
-@import '@fontsource/poppins/600.css';
-@import '@fontsource/open-sans/400.css';
-@import '@fontsource/open-sans/500.css';
-@import '@fontsource/open-sans/600.css';
+/* فقط فونت‌های لازم رو نگه می‌داریم – بقیه رو حذف می‌کنیم تا حجم کمتر بشه */
+@import '@fontsource/vazirmatn/300.css';
 @import '@fontsource/vazirmatn/400.css';
 @import '@fontsource/vazirmatn/500.css';
 @import '@fontsource/vazirmatn/600.css';
+@import '@fontsource/vazirmatn/700.css';
+
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+
+/* فونت اصلی کل سایت: فارسی = Vazirmatn، انگلیسی = Inter */
+html, body, * {
+  font-family: 'Vazirmatn', 'Inter', system-ui, sans-serif !important;
+}
+
+/* فقط متن‌های انگلیسی (اعداد، قیمت، دکمه، منو و ...) رو Inter نشون بده) */
+[class*="price"],
+[class*="btn"],
+button,
+input,
+select,
+textarea,
+nav,
+header,
+footer,
+.en,
+.english,
+.text-en,
+.text-latin {
+  font-family: 'Inter', 'Vazirmatn', system-ui, sans-serif !important;
+}
+
+/* عنوان‌ها کمی سنگین‌تر و شیک‌تر */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Vazirmatn', 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
